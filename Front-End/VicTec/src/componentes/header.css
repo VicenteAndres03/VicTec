@@ -1,0 +1,111 @@
+/* Paleta de colores inspirada en la imagen */
+:root {
+  --color-fondo: #0a191d;      /* Fondo oscuro (verde muy oscuro/negro) */
+  --color-primario: #00d084;   /* Verde tecnológico (para acentos) */
+  --color-secundario: #ff6a00; /* Naranja (para acentos) */
+  --color-texto: #ffffff;      /* Texto principal (blanco) */
+  --color-texto-sec: #b0bec5; /* Texto secundario (gris claro) */
+}
+
+.main-header {
+  background-color: var(--color-fondo);
+  padding: 0 2rem; /* Relleno a los lados */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  width: 100%;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px; /* Limita el ancho máximo del contenido */
+  margin: 0 auto;
+  height: 80px; /* Altura fija para el header */
+}
+
+/* --- Logo --- */
+.logo a {
+  font-family: 'Arial', sans-serif; /* Cambia esto por una fuente más tech */
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--color-texto);
+  text-decoration: none;
+  /* Simulación de los colores del logo */
+  background: linear-gradient(45deg, var(--color-primario), var(--color-secundario));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- Enlaces de Navegación --- */
+.nav-links ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 1.5rem; /* Espacio entre enlaces */
+}
+
+.nav-links a {
+  color: var(--color-texto-sec);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+}
+
+.nav-links a:hover {
+  color: var(--color-primario);
+}
+
+/* --- Búsqueda y Acciones --- */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #1e2a2e; /* Fondo un poco más claro */
+  border-radius: 25px;
+  overflow: hidden;
+}
+
+.search-bar input {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.6rem 1rem;
+  color: var(--color-texto);
+  font-size: 0.9rem;
+}
+
+.search-bar input::placeholder {
+  color: var(--color-texto-sec);
+}
+
+.search-bar button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding-right: 1rem;
+  font-size: 1rem;
+}
+
+.user-icons {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.icon-link {
+  color: var(--color-texto-sec);
+  text-decoration: none;
+  font-size: 1.5rem; /* Tamaño de los íconos (emojis) */
+  transition: color 0.2s ease-in-out;
+}
+
+.icon-link:hover {
+  color: var(--color-primario);
+}

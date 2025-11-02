@@ -1,0 +1,27 @@
+/* frontend/src/index.css */
+
+/* ⬇️ DEFINE TUS COLORES GLOBALES AQUÍ ⬇️ */
+:root {
+  --color-fondo: #0a191d;      
+  --color-primario: #00d084;   
+  --color-secundario: #ff6a00; 
+  --color-texto: #ffffff;      
+  --color-texto-sec: #b0bec5; 
+  --color-fondo-claro: #ffffff; /* ⬅️ Añade esto para el fondo blanco */
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  
+  /* ⬇️ ESTE ES EL CAMBIO ⬇️
+    El fondo por defecto de la página será blanco (o un gris claro si prefieres)
+  */
+  background-color: var(--color-fondo-claro); 
+}
+
+* {
+  box-sizing: border-box;
+}
