@@ -134,3 +134,198 @@
 .icon-link:hover {
   color: var(--color-primario);
 }
+
+/* 1. Contenedor del menú (el padre) */
+.user-menu {
+  position: relative; /* Clave para posicionar el menú desplegable */
+  display: inline-block; /* Para que se alinee con el carrito */
+}
+
+/* 2. El ícono de usuario (le añadimos un cursor) */
+.user-icon-trigger {
+  cursor: pointer;
+}
+
+/* 3. El menú desplegable (oculto por defecto) */
+.user-dropdown {
+  display: none; /* Oculto hasta que se haga hover */
+  position: absolute;
+  right: 0; /* Alineado a la derecha */
+  top: 100%; /* Justo debajo del ícono */
+  background-color: #1e2a2e; /* Un fondo oscuro, como la barra de búsqueda */
+  min-width: 160px; /* Ancho mínimo */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  padding: 8px 0; /* Espacio arriba y abajo */
+  z-index: 10;
+}
+
+/* 4. Los enlaces dentro del menú */
+.user-dropdown a {
+  color: var(--color-texto-sec); /* Texto gris claro */
+  padding: 10px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* 5. El efecto hover en los enlaces del menú */
+.user-dropdown a:hover {
+  background-color: var(--color-primario); /* Fondo verde */
+  color: var(--color-fondo); /* Texto oscuro */
+}
+
+/* 6. ¡LA MAGIA! Mostrar el menú al hacer hover en el contenedor */
+.user-menu:hover .user-dropdown {
+  display: block;
+}
+
+/* --- Estilos para el Menú Hamburguesa --- */
+
+/* El botón de la hamburguesa (oculto en escritorio) */
+.hamburger-icon {
+  display: none; /* Oculto por defecto */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  z-index: 1001; /* Asegura que esté sobre otros elementos */
+}
+
+/* Las 3 líneas del ícono */
+.hamburger-icon span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background-color: var(--color-texto);
+  margin: 5px 0;
+  border-radius: 3px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* El 'placeholder' para la búsqueda dentro del nav-links (oculto en escritorio) */
+.nav-search-bar {
+  display: none;
+}
+
+/* --- Media Query: MODO CELULAR --- */
+/* (Puedes ajustar 900px al tamaño que prefieras) */
+
+@media (max-width: 900px) {
+  .hamburger-icon {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1001;
+  }
+
+  .hamburger-icon span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--color-texto);
+    margin: 5px 0;
+    border-radius: 3px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  /* Búsqueda dentro del menú (oculta en escritorio) */
+  .nav-search-bar {
+    display: none;
+  }
+
+  /* 1. Ocultamos la búsqueda de escritorio y mostramos la hamburguesa */
+  .header-actions .search-bar {
+    display: none;
+  }
+  .hamburger-icon {
+    display: block;
+    margin-left: 1rem;
+  }
+  .header-actions {
+    gap: 0.5rem;
+  }
+
+  /* 2. Lógica de animación CSS (reemplaza 'display: none') */
+  .nav-links {
+    /* Posicionamiento */
+    position: absolute;
+    top: 80px; /* Debajo del header */
+    left: 0;
+    width: 100%;
+    background-color: var(--color-fondo);
+    z-index: 1000;
+    border-top: 1px solid #1e2a2e;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+
+    /* Para ocultar el contenido que se desborda */
+    overflow: hidden;
+
+    /* Estado INICIAL (cerrado): altura 0 y transparente */
+    max-height: 0;
+    opacity: 0;
+
+    /* Transición suave */
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-in;
+  }
+
+  /* 3. Estado FINAL (abierto): se activa con la clase .open */
+  .nav-links.open {
+    max-height: 500px; /* Alto suficiente para tu menú */
+    opacity: 1;
+    transition: max-height 0.4s ease-in, opacity 0.3s ease-out;
+  }
+
+  /* 4. Estilos del contenido del menú (igual que antes) */
+  .nav-links ul {
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    gap: 0;
+    padding: 1rem 0; /* Espacio para que no se vea apretado */
+  }
+
+  .nav-links li {
+    width: 100%;
+    text-align: center;
+  }
+
+  .nav-links a {
+    padding: 1rem 0;
+    display: block;
+    width: 100%;
+  }
+
+  .nav-links a:hover {
+    background-color: #1e2a2e;
+  }
+
+  /* 5. Mostramos la búsqueda DENTRO del menú móvil */
+  .nav-links .nav-search-bar {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .nav-links .nav-search-bar input {
+    background-color: #1e2a2e;
+    border-radius: 25px 0 0 25px;
+    border: none;
+    outline: none;
+    padding: 0.6rem 1rem;
+    color: var(--color-texto);
+  }
+
+  .nav-links .nav-search-bar button {
+    background-color: #1e2a2e;
+    border-radius: 0 25px 25px 0;
+    border: none;
+    cursor: pointer;
+    padding-right: 1rem;
+    color: var(--color-texto-sec);
+  }
+}
