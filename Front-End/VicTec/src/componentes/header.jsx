@@ -1,28 +1,33 @@
-import React from 'react';
-import './header.css'; // Importamos el CSS para los estilos
-import logo from '../assets/Logo.png'; // Importamos el logo
+import React from "react";
+import "./header.css"; // Importamos el CSS para los estilos
+import logo from "../assets/Logo.png"; // Importamos el logo
 
 function Header() {
   return (
     <header className="main-header">
       <div className="header-content">
-        
-        <img src={logo} alt="Logo de VicTec" className="logo" width={60} height={60} />
-        <div className="logo">
-          <a href="/">VICTEC</a>
-        </div>
+        {/* --- Logo Unificado --- */}
+        {/* Un solo enlace que contiene la imagen y el texto */}
+        <a href="/" className="logo-container">
+          <img src={logo} alt="Logo de VicTec" className="logo-image" />
+          <span className="logo-text">VICTEC</span>
+        </a>
 
         {/* --- Enlaces de Navegación --- */}
         <nav className="nav-links">
           <ul>
-            {/* NOTA: Cuando instales 'react-router-dom', deberías 
-              cambiar estas etiquetas <a> por componentes <Link>
-              Ej: <li><Link to="/categorias">Categorías</Link></li>
-            */}
-            <li><a href="/categorias">Categorías</a></li>
-            <li><a href="/ofertas">Ofertas</a></li>
-            <li><a href="/soporte">Soporte</a></li>
-            <li><a href="/blog">Blog</a></li>
+            <li>
+              <a href="/Inicio">Inicio</a>
+            </li>
+            <li>
+              <a href="/Productos">Productos</a>
+            </li>
+            <li>
+              <a href="/soporte">Soporte</a>
+            </li>
+            <li>
+              <a href="/blog">Blog</a>
+            </li>
           </ul>
         </nav>
 
@@ -30,15 +35,17 @@ function Header() {
         <div className="header-actions">
           <div className="search-bar">
             <input type="text" placeholder="Buscar productos..." />
-            <button type="submit">🔍</button> {/* Puedes reemplazar esto con un ícono SVG */}
+            <button type="submit">🔍</button>
           </div>
           <div className="user-icons">
-            {/* 👤 y 🛒 son placeholders. Idealmente, usa íconos SVG o de una librería (ej. React Icons) */}
-            <a href="/login" className="icon-link">👤</a>
-            <a href="/carrito" className="icon-link">🛒</a>
+            <a href="/login" className="icon-link">
+              👤
+            </a>
+            <a href="/carrito" className="icon-link">
+              🛒
+            </a>
           </div>
         </div>
-
       </div>
     </header>
   );
