@@ -5,6 +5,7 @@ import logo from "../assets/Circulo.png";
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   return (
     <header className="main-header">
@@ -35,8 +36,8 @@ function Header() {
 
           <div className="user-icons">
             <div className="user-menu">
-              <span className="icon-link user-icon-trigger">👤</span>
-              <div className="user-dropdown">
+              <span className="icon-link user-icon-trigger" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>👤</span>
+              <div className={`user-dropdown ${isUserMenuOpen ? "open" : ""}`}>
                 {/* --- CAMBIO AQUÍ --- */}
                 <Link to="/login">Iniciar Sesión</Link>
                 <Link to="/register">Registrarse</Link>

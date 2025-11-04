@@ -178,7 +178,7 @@
 }
 
 /* 6. ¡LA MAGIA! Mostrar el menú al hacer hover en el contenedor */
-.user-menu:hover .user-dropdown {
+.user-dropdown.open {
   display: block;
 }
 
