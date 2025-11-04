@@ -1,0 +1,162 @@
+/* --- Contenedor Principal --- */
+.admin-login-container {
+  background-color: var(--color-fondo-claro);
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+/* --- Animación (misma que el login) --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Caja de Login --- */
+.admin-login-box {
+  width: 100%;
+  max-width: 450px;
+  padding: 2.5rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.admin-login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.admin-login-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #222;
+  margin: 0;
+}
+
+.admin-login-subtitle {
+  font-size: 1rem;
+  color: #555;
+  margin-top: 0.5rem;
+}
+
+/* --- Formulario --- */
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* (Usamos los mismos estilos del formulario) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Borde Naranja al enfocar */
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-secundario); 
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.2);
+}
+
+/* --- Botón de Ingresar (Naranja) --- */
+.admin-login-button {
+  display: inline-block;
+  background-color: var(--color-secundario); /* Naranja */
+  color: #ffffff; /* Texto blanco */
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.9rem 2rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.admin-login-button:hover {
+  background-color: #ff8a3d; /* Naranja más claro */
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(255, 106, 0, 0.3);
+}
+
+.admin-login-button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+/* --- Link a Login de Cliente --- */
+.client-login-link-text {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.client-login-link {
+  color: var(--color-primario); /* Verde */
+  font-weight: 600;
+  text-decoration: none;
+}
+.client-login-link:hover {
+  text-decoration: underline;
+}
+
+/* --- Mensaje de Error --- */
+.admin-login-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  margin: -0.5rem 0 0.5rem 0;
+}
+
+.admin-login-success {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.admin-login-success h3 {
+  font-size: 1.5rem;
+  /* Usamos el color naranja para la bienvenida */
+  color: var(--color-secundario); 
+  margin: 0;
+}
+
+.admin-login-success p {
+  font-size: 1.1rem;
+  color: #333;
+}

@@ -7,7 +7,13 @@ import './index.css';
 import App from './App.jsx';
 import HomePage from './paginas/inicio.jsx';
 import ProductosPage from './paginas/productos.jsx';
-import SoportePage from './paginas/soporte.jsx'; // <-- 1. Importa la nueva página
+import SoportePage from './paginas/soporte.jsx';
+import BlogPage from './paginas/blog.jsx';
+import LoginPage from './paginas/LoginPage.jsx';
+import RegisterPage from './paginas/RegisterPage.jsx'; // <-- 1. Importa la nueva página
+import CarritoPage from './paginas/CarritoPage.jsx';
+import AdminLoginPage from './paginas/AdminLoginPage.jsx';
+import ReportesPage from './paginas/ReportesPage.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -20,11 +26,13 @@ createRoot(document.getElementById('root')).render(
           {/* Rutas "hijas" que se cargan en el <Outlet> */}
           <Route index element={<HomePage />} />
           <Route path="productos" element={<ProductosPage />} />
-          <Route path="soporte" element={<SoportePage />} /> {/* <-- 2. Añade esta línea */}
-          
-          {/*
-          <Route path="blog" element={<div>Página de Blog</div>} />
-          */}
+          <Route path="soporte" element={<SoportePage />} />
+          <Route path="blog" element={<BlogPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} /> {/* <-- 2. Actualiza esta línea */}
+          <Route path="carrito" element={<CarritoPage />} />
+          <Route path="admin/login" element={<AdminLoginPage />} />
+          <Route path="admin/reportes" element={<ReportesPage />} />
 
         </Route>
       </Routes>

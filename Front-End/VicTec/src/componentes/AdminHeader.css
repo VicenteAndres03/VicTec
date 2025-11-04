@@ -1,0 +1,72 @@
+.admin-header {
+  background-color: #1a1a1a; /* Un negro más suave */
+  color: var(--color-texto);
+  padding: 0 2rem;
+  border-bottom: 3px solid var(--color-secundario); /* Borde naranja */
+}
+
+.admin-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 70px; /* Un poco más bajo que el header principal */
+}
+
+/* --- Marca --- */
+.admin-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+}
+
+.admin-brand span {
+  font-weight: 300;
+  color: #aaa;
+}
+
+/* --- Navegación --- */
+.admin-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.admin-nav-link {
+  color: var(--color-texto-sec);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.admin-nav-link:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+/* Estilo para el link activo */
+.admin-nav-link.active {
+  background-color: var(--color-secundario);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* --- Botón Salir --- */
+.admin-logout-button {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: #444;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.admin-logout-button:hover {
+  background-color: #666;
+}

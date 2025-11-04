@@ -1,0 +1,160 @@
+/* --- Contenedor Principal --- */
+.reportes-container {
+  background-color: var(--color-fondo-claro);
+  padding: 3rem 2rem;
+  min-height: 70vh;
+}
+
+.reportes-header {
+  max-width: 900px;
+  margin: 0 auto 2.5rem auto;
+  text-align: center;
+}
+
+.reportes-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #333;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  border-bottom: 4px solid var(--color-secundario); /* Acento Naranja */
+  padding-bottom: 5px;
+}
+
+.reportes-subtitle {
+  font-size: 1.1rem;
+  color: #555;
+  margin-top: 1rem;
+}
+
+/* --- Caja de Contenido --- */
+.reportes-box {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  overflow: hidden; /* Para que los bordes redondeados se vean bien */
+}
+
+.reporte-generator {
+  padding: 2rem;
+  text-align: center;
+}
+
+.reporte-generator h3 {
+  font-size: 1.4rem;
+  color: #222;
+  margin-top: 0;
+}
+
+/* --- Botón Naranja --- */
+.reporte-button {
+  display: inline-block;
+  background-color: var(--color-secundario);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.9rem 2rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.reporte-button:hover {
+  background-color: #ff8a3d;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(255, 106, 0, 0.3);
+}
+
+.reporte-button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* --- Resultados del Reporte --- */
+.reporte-resultado {
+  background-color: #f9f9f9;
+  padding: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.reporte-resultado h3 {
+  font-size: 1.3rem;
+  color: #222;
+  margin-top: 0;
+  text-align: center;
+}
+
+.reporte-fechas {
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  margin-top: -1rem;
+  margin-bottom: 2rem;
+}
+
+.reporte-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.reporte-lista li {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.reporte-lista li:last-child {
+  border-bottom: none;
+}
+
+.reporte-ganancia {
+  font-weight: 600;
+  color: var(--color-primario); /* Verde para las ganancias */
+}
+
+.reporte-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #333;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.reporte-total-monto {
+  color: var(--color-secundario); /* Naranja para el total */
+}
+
+.reportes-box {
+  margin-bottom: 2rem; /* Espacio entre las cajas */
+}
+
+/* --- Estilo para el botón secundario (PDF) --- */
+.reporte-button.pdf-button {
+  background-color: #333; /* Color oscuro */
+  color: #fff;
+}
+
+.reporte-button.pdf-button:hover {
+  background-color: #555;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Mensaje de error para el PDF --- */
+.reporte-error {
+  color: #721c24;
+  font-weight: 500;
+  margin-top: 1rem;
+}
