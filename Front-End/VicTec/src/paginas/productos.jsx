@@ -64,7 +64,7 @@ function ProductosPage() {
       {/* --- Cuadrícula de Productos --- */}
       <div className="productos-grid">
         
-        {/* PLANTILLA DE PRODUCTO (como en el paso anterior) */}
+        {/* PLANTILLA DE PRODUCTO (ACTUALIZADA A CLP) */}
         
         {/* Producto 1 */}
         <div className="product-card">
@@ -73,8 +73,9 @@ function ProductosPage() {
           </div>
           <h3 className="product-name">Nombre del Producto</h3>
           <div className="product-price">
-            <span className="current-price">$199.90</span>
-            <span className="old-price">$299.90</span>
+            {/* --- CAMBIOS AQUÍ --- */}
+            <span className="current-price">CLP$199.990</span>
+            <span className="old-price">CLP$299.990</span>
           </div>
           <span className="product-brand-placeholder">Marca</span>
         </div>
@@ -86,7 +87,8 @@ function ProductosPage() {
           </div>
           <h3 className="product-name">Nombre del Producto</h3>
           <div className="product-price">
-            <span className="current-price">$49.90</span>
+            {/* --- CAMBIOS AQUÍ --- */}
+            <span className="current-price">CLP$49.990</span>
           </div>
           <span className="product-brand-placeholder">Marca</span>
         </div>

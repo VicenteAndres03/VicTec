@@ -28,7 +28,9 @@ public class ReportesController {
             // --- 1. Aquí iría tu lógica de Base de Datos ---
             // (Ej: `List<Venta> ventas = ventaRepository.findAllByMesActual()`)
             // Por ahora, simularemos los datos:
-            double gananciaMes = 15320.75;
+            
+            // --- CAMBIOS AQUÍ (Tipo de dato y valor) ---
+            long gananciaMes = 15320750; 
             String mesActual = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM, yyyy"));
 
             // --- 2. Crear el PDF en memoria ---
@@ -44,7 +46,8 @@ public class ReportesController {
             
             // Contenido
             document.add(new Paragraph("Mes del Reporte: " + mesActual));
-            document.add(new Paragraph("Total de Ganancias (Simulación): $" + gananciaMes));
+            // --- CAMBIO AQUÍ (Añadido "CLP$ ") ---
+            document.add(new Paragraph("Total de Ganancias (Simulación): CLP$ " + gananciaMes));
             document.add(new Paragraph(" "));
             document.add(new Paragraph("(Este es un reporte de ejemplo generado por el sistema)"));
             

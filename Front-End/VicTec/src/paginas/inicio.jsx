@@ -56,15 +56,16 @@ function FeaturedCategories() {
       <h2 className="featured-title">CATEGORÍAS DESTACADAS</h2>
       <div className="featured-grid">
         
-        {/* PLANTILLA DE PRODUCTO (como lo pediste) */}
+        {/* PLANTILLA DE PRODUCTO (ACTUALIZADA A CLP) */}
         <div className="product-card">
           <div className="product-image-box">
             <span className="sale-tag">Sale</span>
           </div>
           <h3 className="product-name">Nombre del Producto</h3>
           <div className="product-price">
-            <span className="current-price">$199.90</span>
-            <span className="old-price">$299.90</span>
+            {/* --- CAMBIOS AQUÍ --- */}
+            <span className="current-price">CLP$199.990</span>
+            <span className="old-price">CLP$299.990</span>
           </div>
           <span className="product-brand-placeholder">Marca</span>
         </div>

@@ -3,31 +3,30 @@ import { Link } from 'react-router-dom';
 import './CarritoPage.css'; // El CSS para esta página
 
 function CarritoPage() {
-  // --- Simulación de Carrito ---
-  // Para ver el carrito vacío, cambia esto por: useState([])
+  // --- Simulación de Carrito (ACTUALIZADA A CLP) ---
   const [items, setItems] = useState([
     {
       id: 1,
       name: 'Auriculares Pro-Gen',
       brand: 'VicTec',
-      price: 39.90,
+      price: 39990, // <--- CAMBIO
       quantity: 1,
-      image: '/placeholder-headset.png' // Deberás tener esta imagen en /public o src/assets
+      image: '/placeholder-headset.png'
     },
     {
       id: 2,
       name: 'Smartwatch X5',
       brand: 'VicTec',
-      price: 179.90,
+      price: 179990, // <--- CAMBIO
       quantity: 1,
-      image: '/placeholder-watch.png' // Deberás tener esta imagen en /public o src/assets
+      image: '/placeholder-watch.png'
     }
   ]);
   // ------------------------------
 
   // Calcula el subtotal
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const envio = 10.00; // Simulación de costo de envío
+  const envio = 3500; // <--- CAMBIO (Costo de envío en CLP)
   const total = subtotal + envio;
 
   // --- Vista del Carrito Vacío ---
@@ -61,7 +60,8 @@ function CarritoPage() {
               <input type="number" min="1" max="10" defaultValue={item.quantity} />
             </div>
             <div className="cart-item-price">
-              ${(item.price * item.quantity).toFixed(2)}
+              {/* --- CAMBIO AQUÍ (Formato CLP) --- */}
+              CLP$${(item.price * item.quantity).toLocaleString('es-CL')}
             </div>
           </div>
         ))}
@@ -72,16 +72,19 @@ function CarritoPage() {
         <h3>Resumen de tu Pedido</h3>
         <div className="summary-row">
           <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          {/* --- CAMBIO AQUÍ (Formato CLP) --- */}
+          <span>CLP$${subtotal.toLocaleString('es-CL')}</span>
         </div>
         <div className="summary-row">
           <span>Envío (Estimado)</span>
-          <span>${envio.toFixed(2)}</span>
+          {/* --- CAMBIO AQUÍ (Formato CLP) --- */}
+          <span>CLP$${envio.toLocaleString('es-CL')}</span>
         </div>
         <div className="summary-divider"></div>
         <div className="summary-row total">
           <span>Total</span>
-          <span>${total.toFixed(2)}</span>
+          {/* --- CAMBIO AQUÍ (Formato CLP) --- */}
+          <span>CLP$${total.toLocaleString('es-CL')}</span>
         </div>
         <button className="checkout-button">
           Proceder al Pago
