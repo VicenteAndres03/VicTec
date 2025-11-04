@@ -66,12 +66,18 @@
 }
 
 
-/* --- Estilos de Tarjeta de Producto (Sin cambios) --- */
+/* --- Estilos de Tarjeta de Producto (MODIFICADOS) --- */
+
+/* 1. Hacemos que la tarjeta use flexbox en columna */
 .product-card {
   border: 1px solid #eee;
   border-radius: 8px;
   overflow: hidden;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
+  
+  /* --- CAMBIOS AQUÍ --- */
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card:hover {
@@ -102,15 +108,24 @@
   font-weight: bold;
 }
 
+/* 2. Nuevo contenedor de información */
+.product-info {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Esto hace que el div crezca y llene el espacio */
+}
+
+/* 3. Ajustamos márgenes/padding de los elementos de texto */
 .product-name {
   font-size: 1.1rem;
   font-weight: 600;
   color: #222;
-  margin: 1rem 1rem 0.5rem 1rem;
+  margin: 0 0 0.5rem 0; /* Ajustado */
 }
 
 .product-price {
-  padding: 0 1rem 1rem 1rem;
+  padding: 0 0 0.5rem 0; /* Ajustado */
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
@@ -132,8 +147,33 @@
   display: block;
   font-size: 0.8rem;
   color: #aaa;
-  padding: 0 1rem 1rem 1rem;
+  padding: 0; /* Ajustado */
 }
+
+/* 4. Estilos para el NUEVO botón */
+.product-add-to-cart-button {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background-color: var(--color-primario); /* Usa tu color primario */
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  
+  /* Esto empuja el botón al fondo de la tarjeta */
+  margin-top: auto; 
+  padding-top: 0.75rem; /* (Asegura padding simétrico) */
+}
+
+.product-add-to-cart-button:hover {
+  background-color: #00ff9d; /* Un verde más brillante al pasar el mouse */
+  box-shadow: 0 4px 12px rgba(0, 208, 132, 0.3);
+}
+
 
 /* --- Responsive --- */
 @media (max-width: 900px) {

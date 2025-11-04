@@ -13,11 +13,13 @@ import LoginPage from './paginas/LoginPage.jsx';
 import RegisterPage from './paginas/RegisterPage.jsx';
 import CarritoPage from './paginas/CarritoPage.jsx';
 
+// --- 1. Importa la nueva página de Detalle ---
+import DetalleProductoPage from './paginas/DetalleProductoPage.jsx'; 
+
 // --- Importa el AdminLayout y las páginas de admin ---
 import AdminLayout from './layouts/AdminLayout.jsx'; 
 import AdminLoginPage from './paginas/AdminLoginPage.jsx';
 import ReportesPage from './paginas/ReportesPage.jsx';
-// --- 1. Importa la nueva página de gestión ---
 import GestionProductosPage from './paginas/GestionProductosPage.jsx';
 
 createRoot(document.getElementById('root')).render(
@@ -29,6 +31,10 @@ createRoot(document.getElementById('root')).render(
         <Route path="/" element={<App />}>
           <Route index element={<HomePage />} />
           <Route path="productos" element={<ProductosPage />} />
+          
+          {/* --- 2. AÑADE LA RUTA DINÁMICA AQUÍ --- */}
+          <Route path="productos/:id" element={<DetalleProductoPage />} />
+
           <Route path="soporte" element={<SoportePage />} />
           <Route path="blog" element={<BlogPage />} />
           <Route path="login" element={<LoginPage />} />
@@ -37,17 +43,11 @@ createRoot(document.getElementById('root')).render(
         </Route>
 
         {/* --- RUTAS DE ADMIN --- */}
-        
-        {/* Ruta de Login (sin layout) */}
+        {/* (El resto de tus rutas de admin quedan igual) */}
         <Route path="admin/login" element={<AdminLoginPage />} />
-
-        {/* Rutas protegidas (con AdminHeader) */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="reportes" element={<ReportesPage />} />
-          
-          {/* --- 2. Añade la nueva ruta aquí --- */}
           <Route path="productos" element={<GestionProductosPage />} />
-          
         </Route>
 
       </Routes>

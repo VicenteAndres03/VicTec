@@ -1,13 +1,35 @@
 import React, { useState } from 'react';
-import './productos.css'; // Importamos el CSS para esta página
+import { useNavigate, Link } from 'react-router-dom'; // <-- 1. IMPORTA Link
+import './productos.css';
+
+// --- SIMULACIÓN DE BASE DE DATOS ---
+const mockProductos = [
+  {
+    id: 1,
+    nombre: 'Auriculares Pro-Gen',
+    marca: 'VicTec',
+    precio: 39990,
+    precioAntiguo: 59990,
+    enOferta: true,
+    imgUrl: 'https://i.imgur.com/8Q1mP0B.png',
+  },
+  {
+    id: 2,
+    nombre: 'Smartwatch X5',
+    marca: 'VicTec',
+    precio: 179990,
+    precioAntiguo: null,
+    enOferta: false,
+    imgUrl: 'https://i.imgur.com/7H2j3bE.png',
+  },
+];
+// ---------------------------------
+
 
 // --- Sub-componente para los Filtros ---
 function ProductFilters() {
-  // Estado para saber qué filtro está activo
+  // ... (El componente de filtros no cambia) ...
   const [activeFilter, setActiveFilter] = useState('todos');
-
-  // En el futuro, este estado 'activeFilter' lo usarás
-  // para filtrar la lista de productos que viene de tu API.
 
   return (
     <nav className="filter-bar-container">
@@ -28,22 +50,7 @@ function ProductFilters() {
             Audífonos
           </button>
         </li>
-        <li>
-          <button
-            className={activeFilter === 'teclados' ? 'active' : ''}
-            onClick={() => setActiveFilter('teclados')}
-          >
-            Teclados
-          </button>
-        </li>
-        <li>
-          <button
-            className={activeFilter === 'mouse' ? 'active' : ''}
-            onClick={() => setActiveFilter('mouse')}
-          >
-            Mouse
-          </button>
-        </li>
+        {/* ... (otros filtros) ... */}
       </ul>
     </nav>
   );
@@ -52,52 +59,87 @@ function ProductFilters() {
 
 // --- Componente Principal de la Página ---
 function ProductosPage() {
+  const navigate = useNavigate();
+
+  // <-- 2. MODIFICADO: Acepta el 'event' (e) -->
+  const handleAddToCart = (e) => {
+    // ¡MUY IMPORTANTE!
+    // Esto evita que al hacer clic en el botón, también
+    // se active el <Link> de la tarjeta.
+    e.preventDefault(); 
+    e.stopPropagation(); 
+
+    console.log("Producto añadido (simulación)... Redirigiendo al carrito.");
+    navigate('/carrito');
+  };
+
   return (
     <main className="productos-container">
       
-      {/* --- Título de la Página --- */}
       <h1 className="productos-title">Nuestros Productos</h1>
-
-      {/* --- NUEVA BARRA DE FILTROS --- */}
       <ProductFilters />
 
-      {/* --- Cuadrícula de Productos --- */}
       <div className="productos-grid">
         
-        {/* PLANTILLA DE PRODUCTO (ACTUALIZADA A CLP) */}
-        
-        {/* Producto 1 */}
-        <div className="product-card">
-          <div className="product-image-box">
-            <span className="sale-tag">Sale</span>
-          </div>
-          <h3 className="product-name">Nombre del Producto</h3>
-          <div className="product-price">
-            {/* --- CAMBIOS AQUÍ --- */}
-            <span className="current-price">CLP$199.990</span>
-            <span className="old-price">CLP$299.990</span>
-          </div>
-          <span className="product-brand-placeholder">Marca</span>
-        </div>
-
-        {/* Producto 2 */}
-        <div className="product-card">
-          <div className="product-image-box">
-            {/* (Imagen del producto irá aquí) */}
-          </div>
-          <h3 className="product-name">Nombre del Producto</h3>
-          <div className="product-price">
-            {/* --- CAMBIOS AQUÍ --- */}
-            <span className="current-price">CLP$49.990</span>
-          </div>
-          <span className="product-brand-placeholder">Marca</span>
-        </div>
-
-        {/* (Aquí puedes seguir pegando más plantillas de producto) */}
+        {/* --- 3. Mapeamos desde nuestra simulación de BD --- */}
+        {mockProductos.map((producto) => (
+          
+          // <-- 4. CADA TARJETA ES UN LINK a su 'id' -->
+          <Link 
+            to={`/productos/${producto.id}`} 
+            className="product-card" 
+            key={producto.id}
+          >
+            <div className="product-image-box">
+              {/* (Usamos la imgUrl del producto) */}
+              <img src={producto.imgUrl} alt={producto.nombre} className="product-image-real" />
+              {producto.enOferta && <span className="sale-tag">Sale</span>}
+            </div>
+            
+            <div className="product-info">
+              <h3 className="product-name">{producto.nombre}</h3>
+              <div className="product-price">
+                <span className="current-price">
+                  CLP${producto.precio.toLocaleString('es-CL')}
+                </span>
+                {producto.enOferta && (
+                  <span className="old-price">
+                    CLP${producto.precioAntiguo.toLocaleString('es-CL')}
+                  </span>
+                )}
+              </div>
+              <span className="product-brand-placeholder">{producto.marca}</span>
+              
+              <button 
+                className="product-add-to-cart-button"
+                onClick={handleAddToCart} // <-- 5. El onClick sigue aquí
+              >
+                Añadir al Carrito
+              </button>
+            </div>
+          </Link>
+        ))}
         
       </div>
     </main>
   );
 }
+
+// Estilo rápido para la imagen (añade esto a productos.css si quieres)
+/*
+.product-image-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+  background-color: #f5f5f5;
+  overflow: hidden;
+}
+.product-image-real {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+}
+*/
 
 export default ProductosPage;
