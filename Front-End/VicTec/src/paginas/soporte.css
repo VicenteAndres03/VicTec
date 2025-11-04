@@ -1,0 +1,119 @@
+/* --- Estilos del Contenedor --- */
+.soporte-container {
+  background-color: var(--color-fondo-claro);
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: center;
+  min-height: 70vh; /* Altura mínima */
+}
+
+.soporte-content {
+  width: 100%;
+  max-width: 700px; /* Ancho ideal para un formulario */
+}
+
+/* --- Estilos de la Cabecera --- */
+.soporte-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.soporte-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #333;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  border-bottom: 4px solid var(--color-primario); /* Línea verde */
+  padding-bottom: 5px;
+}
+
+.soporte-description {
+  font-size: 1.1rem;
+  color: #555;
+  margin-top: 1rem;
+}
+
+/* --- Estilos del Formulario --- */
+.soporte-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-primario); /* Borde verde al enfocar */
+  box-shadow: 0 0 0 3px rgba(0, 208, 132, 0.2);
+}
+
+.form-group textarea {
+  resize: vertical; /* Permite al usuario ajustar la altura */
+  min-height: 120px;
+}
+
+/* --- Estilo del Botón --- */
+.soporte-button {
+  display: inline-block;
+  background-color: var(--color-primario); /* Botón verde */
+  color: #000000; /* Texto negro */
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.9rem 2rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.soporte-button:hover {
+  background-color: #00ff9d; /* Verde más brillante */
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 208, 132, 0.3);
+}
+
+.status-message {
+  text-align: center;
+  font-weight: 600;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-radius: 8px;
+}
+
+.status-message.exito {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}

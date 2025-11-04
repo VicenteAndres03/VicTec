@@ -1,17 +1,21 @@
 import React from "react";
-import Header from "./componentes/header"; // Importa tu header
-import Footer from "./componentes/Footer"; // 1. Importa tu nuevo footer
-import "./App.css";
+import { Outlet } from "react-router-dom";
+import Header from "./componentes/header";
+import Footer from "./componentes/Footer";
+import "./App.css"; // Importamos los estilos de App
 
 function App() {
   return (
+    // Este div será nuestro contenedor flex
     <div className="App">
-      <Header /> {/* ¡Aquí está tu header! */}
-      <main className="content">
-        {/* El espacio en blanco que ves ahora */}
-        {/* Aquí irán tus componentes de productos, etc. */}
+      <Header />
+
+      {/* 1. Envolvemos el Outlet en un <main> */}
+      <main className="app-content">
+        <Outlet /> 
       </main>
-      <Footer /> {/* 2. ¡Aquí está tu footer! */}
+      
+      <Footer />
     </div>
   );
 }

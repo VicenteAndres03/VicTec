@@ -1,0 +1,14 @@
+/* Le decimos al layout principal que use Flexbox */
+.App {
+  display: flex;
+  flex-direction: column;
+  
+  /* Altura mínima: 100% de la altura de la ventana */
+  min-height: 100vh;
+}
+
+/* Le decimos al contenido (main) que "crezca" 
+   para ocupar todo el espacio sobrante que haya */
+.app-content {
+  flex-grow: 1;
+}

@@ -1,34 +1,36 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom"; // 1. Importa el componente Link
 import "./header.css";
-import logo from "../assets/Logo.png";
+import logo from "../assets/Circulo.png";
 
 function Header() {
-  // Solo necesitamos 'useState'
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <header className="main-header">
       <div className="header-content">
-        {/* --- Logo Unificado --- */}
-        <a href="/" className="logo-container">
+        
+        {/* 2. Cambiamos <a> por <Link> */}
+        <Link to="/" className="logo-container">
           <img src={logo} alt="Logo de VicTec" className="logo-image" />
           <span className="logo-text">VICTEC</span>
-        </a>
+        </Link>
 
         {/* --- Volvemos a la clase 'open' condicional --- */}
         <nav className={`nav-links ${isMenuOpen ? "open" : ""}`}>
           <ul>
+            {/* 3. Cambiamos todos los <a> por <Link> */}
             <li>
-              <a href="/Inicio">Inicio</a>
+              <Link to="/">Inicio</Link>
             </li>
             <li>
-              <a href="/Productos">Productos</a>
+              <Link to="/productos">Productos</Link>
             </li>
             <li>
-              <a href="/soporte">Soporte</a>
+              <Link to="/soporte">Soporte</Link>
             </li>
             <li>
-              <a href="/blog">Blog</a>
+              <Link to="/blog">Blog</Link>
             </li>
             <li className="nav-search-bar">
               <input type="text" placeholder="Buscar productos..." />
@@ -41,13 +43,16 @@ function Header() {
         <div className="header-actions">
           <div className="search-bar">
             <input type="text" placeholder="Buscar productos..." />
-            <button type="submit">🔍</button>
+            <button typeD="submit">🔍</button>
           </div>
 
           <div className="user-icons">
             <div className="user-menu">
               <span className="icon-link user-icon-trigger">👤</span>
               <div className="user-dropdown">
+                {/* Estos pueden seguir siendo <a> si te llevan 
+                    fuera de la app principal, o puedes 
+                    cambiarlos por <Link> también */}
                 <a href="/login">Iniciar Sesión</a>
                 <a href="/register">Registrarse</a>
               </div>
