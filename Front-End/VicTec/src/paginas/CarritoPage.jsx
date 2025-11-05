@@ -86,9 +86,9 @@ function CarritoPage() {
           {/* --- CAMBIO AQUÍ (Formato CLP) --- */}
           <span>CLP$${total.toLocaleString('es-CL')}</span>
         </div>
-        <button className="checkout-button">
-          Proceder al Pago
-        </button>
+        <Link to="/checkout" className="checkout-button">
+            Proceder al Pago
+        </Link>
       </div>
     </div>
   );

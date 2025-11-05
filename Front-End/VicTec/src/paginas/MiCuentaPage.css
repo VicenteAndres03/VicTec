@@ -1,0 +1,88 @@
+.mi-cuenta-container {
+  background-color: var(--color-fondo-claro);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  min-height: 70vh;
+}
+
+.mi-cuenta-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #333;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.mi-cuenta-box {
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.mi-cuenta-subtitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #222;
+  margin: 0 0 0.5rem 0;
+}
+
+.mi-cuenta-box > p {
+  font-size: 1rem;
+  color: #555;
+  margin-top: 0;
+}
+
+.mi-cuenta-form {
+  margin-top: 2rem;
+}
+
+/* Estilos de formulario (reutilizados) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+}
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+.form-group input {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+/* Estilo para inputs deshabilitados */
+.form-group input:disabled {
+  background-color: #eee;
+  color: #777;
+}
+
+.mi-cuenta-button {
+  display: inline-block;
+  background-color: var(--color-primario);
+  color: #000000;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.9rem 2rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+.mi-cuenta-button:hover {
+  background-color: #00ff9d;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 208, 132, 0.3);
+}

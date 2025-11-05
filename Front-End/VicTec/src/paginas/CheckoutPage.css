@@ -1,0 +1,178 @@
+/* --- Contenedor Principal --- */
+.checkout-container {
+  background-color: var(--color-fondo-claro);
+  padding: 3rem 2rem;
+  min-height: 70vh;
+}
+
+.checkout-layout {
+  display: grid;
+  grid-template-columns: 3fr 2fr; /* 60% formulario, 40% resumen */
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.checkout-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
+
+/* --- Estilos del Formulario --- */
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 2rem;
+}
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-section h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 1.5rem 0;
+}
+
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+}
+
+/* Reutilizamos los estilos de formulario de otras páginas */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-bottom: 1.25rem;
+}
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+.form-group input {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-primario);
+  box-shadow: 0 0 0 3px rgba(0, 208, 132, 0.2);
+}
+
+/* --- Opciones de Pago --- */
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.payment-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primario);
+}
+
+/* --- Botón de Pago --- */
+.checkout-submit-button {
+  display: block;
+  width: 100%;
+  background-color: var(--color-primario);
+  color: #000;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 1.5rem;
+  transition: all 0.3s ease;
+}
+.checkout-submit-button:hover {
+  background-color: #00ff9d;
+  box-shadow: 0 5px 15px rgba(0, 208, 132, 0.3);
+}
+
+/* --- Resumen de Pedido --- */
+.checkout-summary-section {
+  position: relative;
+}
+.checkout-summary {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1.5rem;
+  position: sticky;
+  top: 100px; /* 80px header + 20px margen */
+}
+.checkout-summary h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #222;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Reutilizamos los estilos de CarritoPage.css */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #555;
+}
+.summary-divider {
+  border-bottom: 1px solid #eee;
+  margin: 1rem 0;
+}
+.summary-row.total {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #222;
+}
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+  .checkout-layout {
+    grid-template-columns: 1fr; /* 1 columna */
+  }
+  .checkout-summary-section {
+    /* El resumen se va al final en móvil */
+    grid-row: 1; /* Lo pone arriba del formulario */
+    margin-bottom: 2rem;
+  }
+  .checkout-summary {
+    position: static;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}

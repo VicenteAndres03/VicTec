@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import './DetalleProductoPage.css'; // El CSS que actualizaremos
+import './DetalleProductoPage.css'; 
 
-// --- SIMULACIÓN DE BASE DE DATOS (¡AHORA CON MÁS DETALLES!) ---
+// --- SIMULACIÓN DE BASE DE DATOS (Sin cambios) ---
 const mockProductos = [
   {
     id: 1,
@@ -11,8 +11,7 @@ const mockProductos = [
     precio: 39990,
     precioAntiguo: 59990,
     enOferta: true,
-    imgUrl: 'https://i.imgur.com/8Q1mP0B.png',
-    // --- NUEVOS DATOS ---
+    imgUrl: 'https://i.imgur.com/8Q1mP0B.png', 
     sku: 'VT-AUD-PRO-001',
     stock: 25,
     categoria: 'Audio',
@@ -36,7 +35,6 @@ const mockProductos = [
     precioAntiguo: null,
     enOferta: false,
     imgUrl: 'https://i.imgur.com/7H2j3bE.png',
-    // --- NUEVOS DATOS ---
     sku: 'VT-SW-X5-002',
     stock: 10,
     categoria: 'Smartwatches',
@@ -54,8 +52,7 @@ const mockProductos = [
 ];
 // ---------------------------------
 
-// --- NUEVA FUNCIÓN ---
-// Helper para renderizar estrellas
+// Helper para renderizar estrellas (Sin cambios)
 function renderRating(rating) {
   const stars = [];
   for (let i = 0; i < 5; i++) {
@@ -68,11 +65,60 @@ function renderRating(rating) {
   return stars;
 }
 
+// Sub-componentes para Pestañas (Sin cambios)
+function DescripcionTab({ producto }) {
+  return (
+    <div className="tab-content-descripcion">
+      <p>{producto.descripcion}</p>
+    </div>
+  );
+}
+function EspecificacionesTab({ producto }) {
+  return (
+    <div className="tab-content-especificaciones">
+      <h4>Especificaciones Técnicas</h4>
+      <ul className="detalle-especificaciones-lista">
+        {producto.especificaciones.map((spec) => (
+          <li key={spec.key}>
+            <strong>{spec.key}:</strong> {spec.value}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+function ComentariosTab({ producto }) {
+  return (
+    <div className="tab-content-comentarios">
+      <h4>Opiniones del Producto ({producto.comentarios.length})</h4>
+      <div className="comentarios-lista">
+        {producto.comentarios.length === 0 ? (
+          <p>Este producto aún no tiene opiniones. ¡Sé el primero!</p>
+        ) : (
+          producto.comentarios.map((comentario) => (
+            <div className="comentario-item" key={comentario.id}>
+              <div className="comentario-header">
+                <span className="comentario-autor">{comentario.autor}</span>
+                <span className="comentario-rating">
+                  {renderRating(comentario.rating)}
+                </span>
+              </div>
+              <p className="comentario-texto">{comentario.texto}</p>
+              <span className="comentario-fecha">{comentario.fecha}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 function DetalleProductoPage() {
   const { id } = useParams();
   const producto = mockProductos.find(p => p.id == id);
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('desc');
 
   const handleAddToCart = () => {
     console.log("Añadido al carrito:", producto.nombre);
@@ -80,6 +126,7 @@ function DetalleProductoPage() {
   };
 
   if (!producto) {
+    // ... (Sección de error sin cambios)
     return (
       <main className="detalle-container">
         <div className="detalle-error">
@@ -95,6 +142,13 @@ function DetalleProductoPage() {
 
   return (
     <main className="detalle-container">
+
+      {/* --- 1. BOTÓN DE VOLVER AÑADIDO AQUÍ --- */}
+      <Link to="/productos" className="detalle-back-link">
+        ← Volver a Productos
+      </Link>
+
+      {/* --- SECCIÓN SUPERIOR (Layout de 2 columnas) --- */}
       <div className="detalle-layout">
 
         {/* --- Columna de Imagen --- */}
@@ -106,15 +160,11 @@ function DetalleProductoPage() {
         {/* --- Columna de Información --- */}
         <div className="detalle-info">
           <span className="detalle-marca">{producto.marca}</span>
-          
-          {/* --- NUEVO: Stock y SKU --- */}
           <div className="detalle-meta-info">
             <span>Stock: <strong className="meta-stock">{producto.stock} disponibles</strong></span>
             <span>SKU: {producto.sku}</span>
           </div>
-
           <h1 className="detalle-nombre">{producto.nombre}</h1>
-          
           <div className="detalle-precios">
             <span className="detalle-precio-actual">
               CLP${producto.precio.toLocaleString('es-CL')}
@@ -125,23 +175,10 @@ function DetalleProductoPage() {
               </span>
             )}
           </div>
-
-          <p className="detalle-descripcion">
-            {producto.descripcion}
+          <p className="detalle-descripcion-corta">
+            {producto.descripcion.substring(0, 150)}... 
+            <a href="#detalle-tabs" className="ver-mas-link">(ver más)</a>
           </p>
-
-          {/* --- NUEVO: Lista de Especificaciones --- */}
-          <div className="detalle-especificaciones">
-            <h4>Especificaciones Técnicas</h4>
-            <ul className="detalle-especificaciones-lista">
-              {producto.especificaciones.map((spec) => (
-                <li key={spec.key}>
-                  <strong>{spec.key}:</strong> {spec.value}
-                </li>
-              ))}
-            </ul>
-          </div>
-
           <button 
             className="detalle-add-to-cart-button"
             onClick={handleAddToCart}
@@ -151,30 +188,36 @@ function DetalleProductoPage() {
         </div>
       </div>
 
-      {/* --- NUEVO: Sección de Comentarios --- */}
-      <div className="detalle-comentarios-container">
-        <h3>Opiniones del Producto ({producto.comentarios.length})</h3>
-        
-        <div className="comentarios-lista">
-          {producto.comentarios.length === 0 ? (
-            <p>Este producto aún no tiene opiniones. ¡Sé el primero!</p>
-          ) : (
-            producto.comentarios.map((comentario) => (
-              <div className="comentario-item" key={comentario.id}>
-                <div className="comentario-header">
-                  <span className="comentario-autor">{comentario.autor}</span>
-                  <span className="comentario-rating">
-                    {renderRating(comentario.rating)}
-                  </span>
-                </div>
-                <p className="comentario-texto">{comentario.texto}</p>
-                <span className="comentario-fecha">{comentario.fecha}</span>
-              </div>
-            ))
-          )}
+      {/* --- SECCIÓN INFERIOR (Pestañas) --- */}
+      <div id="detalle-tabs" className="detalle-tabs-container">
+        {/* Navegación de Pestañas */}
+        <div className="detalle-tabs">
+          <button 
+            className={`detalle-tab-button ${activeTab === 'desc' ? 'active' : ''}`}
+            onClick={() => setActiveTab('desc')}
+          >
+            Descripción
+          </button>
+          <button 
+            className={`detalle-tab-button ${activeTab === 'specs' ? 'active' : ''}`}
+            onClick={() => setActiveTab('specs')}
+          >
+            Especificaciones
+          </button>
+          <button 
+            className={`detalle-tab-button ${activeTab === 'reviews' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reviews')}
+          >
+            Opiniones ({producto.comentarios.length})
+          </button>
+        </div>
+        {/* Contenido de las Pestañas */}
+        <div className="detalle-tab-content">
+          {activeTab === 'desc' && <DescripcionTab producto={producto} />}
+          {activeTab === 'specs' && <EspecificacionesTab producto={producto} />}
+          {activeTab === 'reviews' && <ComentariosTab producto={producto} />}
         </div>
       </div>
-
     </main>
   );
 }

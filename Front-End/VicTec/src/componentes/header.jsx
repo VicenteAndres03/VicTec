@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // Asegúrate de que Link esté importado
+import { Link } from "react-router-dom";
+import { useAuth } from '../context/AuthContext'; // 1. Importa el hook
 import "./header.css";
 import logo from "../assets/Circulo.png";
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  
+  // 2. Lee el estado de autenticación del contexto
+  const { isAuthenticated, user, logout } = useAuth();
 
   return (
     <header className="main-header">
@@ -36,14 +40,31 @@ function Header() {
 
           <div className="user-icons">
             <div className="user-menu">
-              <span className="icon-link user-icon-trigger" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>👤</span>
+              <span className="icon-link user-icon-trigger" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
+                {/* 3. Muestra el ícono o las iniciales del usuario */}
+                {isAuthenticated ? (
+                  <div className="user-initials">{user.nombre.charAt(0)}</div>
+                ) : (
+                  '👤'
+                )}
+              </span>
+              
+              {/* 4. Cambia el menú dinámicamente */}
               <div className={`user-dropdown ${isUserMenuOpen ? "open" : ""}`}>
-                {/* --- CAMBIO AQUÍ --- */}
-                <Link to="/login">Iniciar Sesión</Link>
-                <Link to="/register">Registrarse</Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/mi-cuenta">Mi Cuenta</Link>
+                    <Link to="/mis-pedidos">Mis Pedidos</Link>
+                    <button onClick={logout} className="logout-button">Cerrar Sesión</button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login">Iniciar Sesión</Link>
+                    <Link to="/register">Registrarse</Link>
+                  </>
+                )}
               </div>
             </div>
-            {/* Este puede ser un Link o un <a> */}
             <Link to="/carrito" className="icon-link">🛒</Link>
           </div>
 

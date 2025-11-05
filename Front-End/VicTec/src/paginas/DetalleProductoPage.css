@@ -10,9 +10,10 @@
 /* --- Layout de 2 Columnas --- */
 .detalle-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Dos columnas de igual tamaño */
+  grid-template-columns: 1fr 1fr;
   gap: 3rem;
   align-items: flex-start;
+  margin-bottom: 4rem; /* Espacio antes de las pestañas */
 }
 
 /* --- Columna Izquierda: Imagen --- */
@@ -23,6 +24,8 @@
   border-radius: 12px;
   padding: 2rem;
   overflow: hidden;
+  position: sticky; /* Hacemos que la imagen se quede fija al scrollear */
+  top: 100px; /* 80px del header + 20px de margen */
 }
 
 .detalle-imagen img {
@@ -57,6 +60,18 @@
   letter-spacing: 0.5px;
 }
 
+.detalle-meta-info {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0.5rem 0;
+}
+.meta-stock {
+  color: var(--color-primario);
+  font-weight: 700;
+}
+
 .detalle-nombre {
   font-size: 2.5rem;
   font-weight: 900;
@@ -86,11 +101,16 @@
   text-decoration: line-through;
 }
 
-.detalle-descripcion {
-  font-size: 1.1rem;
+.detalle-descripcion-corta {
+  font-size: 1rem;
   color: #444;
   line-height: 1.6;
   margin-bottom: 2.5rem;
+}
+.ver-mas-link {
+  color: var(--color-primario);
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .detalle-add-to-cart-button {
@@ -107,11 +127,125 @@
   transition: all 0.3s ease;
   text-align: center;
 }
-
 .detalle-add-to-cart-button:hover {
   background-color: #00ff9d;
   transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(0, 208, 132, 0.3);
+}
+
+/* --- SECCIÓN DE PESTAÑAS (NUEVO) --- */
+.detalle-tabs-container {
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.detalle-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  background-color: #f9f9f9;
+}
+
+.detalle-tab-button {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #555;
+  background: none;
+  border: none;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent; /* Borde inactivo */
+}
+
+.detalle-tab-button:hover {
+  color: #000;
+}
+
+.detalle-tab-button.active {
+  color: var(--color-primario); /* Verde */
+  border-bottom: 3px solid var(--color-primario); /* Línea verde activa */
+}
+
+.detalle-tab-content {
+  padding: 2rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #333;
+}
+
+/* --- Estilos Pestaña Especificaciones --- */
+.detalle-especificaciones-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.detalle-especificaciones-lista li {
+  display: flex;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+.detalle-especificaciones-lista li:last-child {
+  border-bottom: none;
+}
+.detalle-especificaciones-lista li strong {
+  color: #222;
+  flex-basis: 200px; /* Ancho fijo para la llave */
+  flex-shrink: 0;
+}
+
+/* --- Estilos Pestaña Comentarios --- */
+.comentarios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.comentario-item {
+  border: 1px solid #eee;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+.comentario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.comentario-autor {
+  font-weight: 700;
+  color: #222;
+}
+.comentario-fecha {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 1rem;
+  display: block;
+}
+.comentario-rating {
+  font-size: 1rem;
+}
+.star-filled {
+  color: #f39c12; /* Amarillo estrella */
+}
+.star-empty {
+  color: #ddd;
+}
+
+.detalle-back-link {
+  display: inline-block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-primario); /* Verde */
+  text-decoration: none;
+  margin-bottom: 2rem; /* Espacio antes del contenido */
+  transition: color 0.2s ease;
+}
+
+.detalle-back-link:hover {
+  color: #333; /* Color oscuro al pasar el mouse */
+  text-decoration: underline;
 }
 
 /* --- Página de Error --- */
@@ -119,15 +253,8 @@
   text-align: center;
   padding: 4rem 0;
 }
-.detalle-error h1 {
-  font-size: 2rem;
-  color: #333;
-}
-.detalle-error p {
-  font-size: 1.1rem;
-  color: #555;
-  margin-bottom: 2rem;
-}
+.detalle-error h1 { font-size: 2rem; color: #333; }
+.detalle-error p { font-size: 1.1rem; color: #555; margin-bottom: 2rem; }
 .detalle-boton-volver {
   display: inline-block;
   background-color: var(--color-secundario);
@@ -144,10 +271,14 @@
     grid-template-columns: 1fr; /* Una sola columna */
     gap: 2rem;
   }
-  .detalle-nombre {
-    font-size: 2rem;
+  .detalle-imagen {
+    position: static; /* La imagen ya no se queda fija */
   }
-  .detalle-precio-actual {
-    font-size: 1.8rem;
+  .detalle-nombre { font-size: 2rem; }
+  .detalle-precio-actual { font-size: 1.8rem; }
+  .detalle-tabs {
+    /* Permite scroll en las pestañas si no caben */
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }

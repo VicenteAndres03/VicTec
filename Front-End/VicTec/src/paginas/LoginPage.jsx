@@ -1,24 +1,41 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // 1. Importa el hook
 import './LoginPage.css'; 
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('idle'); // idle, submitting, error
+  const [status, setStatus] = useState('idle'); 
+  
+  const { login } = useAuth(); // 2. Obtén la función 'login' del contexto
 
   const handleSubmit = (event) => {
     event.preventDefault();
     setStatus('submitting');
-    console.log('Iniciando sesión con:', { email, password });
     
+    // --- 3. Simulación de Login Exitoso ---
+    // (En el futuro, esto será una llamada 'fetch' a tu backend)
     setTimeout(() => {
-      setStatus('error');
+      // Simulamos que el backend nos devuelve los datos del usuario
+      const simulatedUserData = {
+        id: 1,
+        nombre: "Vicente",
+        email: email,
+      };
+      
+      // Llamamos a la función de login del contexto
+      login(simulatedUserData); 
+      
+      // Ya no necesitamos setStatus('success') o navigate() aquí,
+      // porque la función login() del contexto ya lo hace.
+
     }, 1500);
   };
 
   return (
     <main className="login-container">
+      {/* ... (el resto de tu JSX de <main> no cambia) ... */}
       <div className="login-box">
         <div className="login-header">
           <h1 className="login-title">Iniciar Sesión</h1>
@@ -26,32 +43,14 @@ function LoginPage() {
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
-          
-          {status === 'error' && (
-            <p className="login-error-message">
-              Email o contraseña incorrectos.
-            </p>
-          )}
-
+          {/* ... (form-group de email y password no cambian) ... */}
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              required 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <input type="email" id="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
-            <input 
-              type="password" 
-              id="password" 
-              required 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <input type="password" id="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           
           <div className="form-options">
@@ -60,11 +59,7 @@ function LoginPage() {
             </a>
           </div>
           
-          <button 
-            type="submit" 
-            className="login-button" 
-            disabled={status === 'submitting'}
-          >
+          <button type="submit" className="login-button" disabled={status === 'submitting'}>
             {status === 'submitting' ? 'Ingresando...' : 'Ingresar'}
           </button>
 
@@ -74,15 +69,12 @@ function LoginPage() {
               Regístrate aquí
             </Link>
           </p>
-          
-          {/* --- 1. AQUÍ AÑADIMOS EL NUEVO LINK --- */}
           <p className="admin-link-text">
             ¿Eres administrador?{' '}
             <Link to="/admin/login" className="admin-link">
               Inicia aquí
             </Link>
           </p>
-
         </form>
       </div>
     </main>
