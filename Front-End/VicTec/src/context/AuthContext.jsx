@@ -1,40 +1,61 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// 1. Creamos el Contexto
 const AuthContext = createContext(null);
 
-// 2. Creamos el "Proveedor" (el componente que envuelve la app)
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // 'user' será null si no está logueado
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
   const navigate = useNavigate();
 
-  // Función para iniciar sesión (simulada)
-  const login = (userData) => {
-    console.log("Iniciando sesión como:", userData);
-    setUser(userData); // Guardamos los datos del usuario en el estado
-    navigate('/'); // Redirigimos al Inicio
+  useEffect(() => {
+    if (token) {
+      // Aquí, en una aplicación real, deberías decodificar el token
+      // para obtener los datos del usuario y verificar si ha expirado.
+      // Por ahora, simularemos que obtenemos el usuario del localStorage también.
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } else {
+      setUser(null);
+    }
+  }, [token]);
+
+  const login = (userData, authToken) => {
+    localStorage.setItem('token', authToken);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setToken(authToken);
+    setUser(userData);
+    navigate('/');
   };
 
-  // Función para cerrar sesión
   const logout = () => {
-    console.log("Cerrando sesión...");
-    setUser(null); // Borramos al usuario del estado
-    navigate('/'); // Redirigimos al Inicio
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+    navigate('/');
   };
 
-  // Valor que compartiremos con toda la app
+  const getAuthHeader = () => {
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+  };
+
   const value = {
-    user, // El objeto del usuario (o null)
-    isAuthenticated: !!user, // Booleano (true si hay usuario, false si es null)
+    user,
+    isAuthenticated: !!user,
     login,
-    logout
+    logout,
+    getAuthHeader
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// 3. Creamos un "Hook" personalizado para usar el contexto fácilmente
 export function useAuth() {
   return useContext(AuthContext);
 }

@@ -1,41 +1,48 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // 1. Importa el hook
-import './LoginPage.css'; 
+import { useAuth } from '../context/AuthContext';
+import './LoginPage.css';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('idle'); 
-  
-  const { login } = useAuth(); // 2. Obtén la función 'login' del contexto
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (event) => {
+  const { login } = useAuth();
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus('submitting');
-    
-    // --- 3. Simulación de Login Exitoso ---
-    // (En el futuro, esto será una llamada 'fetch' a tu backend)
-    setTimeout(() => {
-      // Simulamos que el backend nos devuelve los datos del usuario
-      const simulatedUserData = {
-        id: 1,
-        nombre: "Vicente",
-        email: email,
-      };
-      
-      // Llamamos a la función de login del contexto
-      login(simulatedUserData); 
-      
-      // Ya no necesitamos setStatus('success') o navigate() aquí,
-      // porque la función login() del contexto ya lo hace.
+    setError(null);
 
-    }, 1500);
+    try {
+      const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al iniciar sesión');
+      }
+
+      // El backend ahora devuelve el usuario y el token
+      const { token, ...userData } = data;
+      login(userData, token);
+
+    } catch (err) {
+      setStatus('error');
+      setError(err.message);
+    }
   };
 
   return (
     <main className="login-container">
-      {/* ... (el resto de tu JSX de <main> no cambia) ... */}
       <div className="login-box">
         <div className="login-header">
           <h1 className="login-title">Iniciar Sesión</h1>
@@ -43,7 +50,10 @@ function LoginPage() {
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
-          {/* ... (form-group de email y password no cambian) ... */}
+          {status === 'error' && (
+            <div className="error-message">{error}</div>
+          )}
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input type="email" id="email" required value={email} onChange={(e) => setEmail(e.target.value)} />

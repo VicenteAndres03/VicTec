@@ -19,7 +19,6 @@ import com.lowagie.text.pdf.PdfWriter;
 
 @RestController
 @RequestMapping("/api/v1/admin/reportes")
-@CrossOrigin(origins = "http://localhost:5173") // Permite la conexión con React
 public class ReportesController {
 
     @GetMapping("/pdf/mensual")

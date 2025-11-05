@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import './CheckoutPage.css'; // El CSS que crearemos
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import './CheckoutPage.css';
 
 function CheckoutPage() {
-  // Estado para todos los campos del formulario
+  const navigate = useNavigate();
+  const { getAuthHeader, isAuthenticated } = useAuth();
+
   const [formData, setFormData] = useState({
     email: '',
     nombre: '',
@@ -13,40 +16,84 @@ function CheckoutPage() {
     region: '',
     codigoPostal: '',
     telefono: '',
-    metodoPago: 'webpay', // Valor por defecto
+    metodoPago: 'webpay',
   });
 
-  // Manejador genérico para actualizar el estado
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState(null);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Manejador del envío del formulario
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Datos del pedido:", formData);
-    // En un futuro, aquí se envían los datos a tu backend
-    // para crear la orden antes de ir a pagar.
-    alert('Redirigiendo a la pasarela de pago (simulación)...');
+    if (!isAuthenticated) {
+      setError('Debes iniciar sesión para continuar');
+      setStatus('error');
+      return;
+    }
+
+    setStatus('submitting');
+    setError(null);
+
+    try {
+      // 1. Crear la dirección
+      const direccionResponse = await fetch('/api/v1/direcciones', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify({
+          calle: formData.direccion,
+          ciudad: formData.ciudad,
+          region: formData.region,
+          codigoPostal: formData.codigoPostal,
+          pais: 'Chile' // Asumimos Chile
+        }),
+      });
+      const direccionData = await direccionResponse.json();
+      if (!direccionResponse.ok) throw new Error(direccionData.error || 'Error al guardar la dirección');
+
+      // 2. Crear el pedido
+      const pedidoResponse = await fetch('/api/v1/pedidos/crear', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ direccionId: direccionData.id }),
+      });
+      const pedidoData = await pedidoResponse.json();
+      if (!pedidoResponse.ok) throw new Error(pedidoData.error || 'Error al crear el pedido');
+
+      // 3. Crear la preferencia de pago
+      const preferenceResponse = await fetch('/api/v1/payment/create-preference', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ pedidoId: pedidoData.id }),
+      });
+      const preferenceData = await preferenceResponse.json();
+      if (!preferenceResponse.ok) throw new Error(preferenceData.error || 'Error al crear la preferencia de pago');
+
+      // 4. Redirigir a Mercado Pago
+      window.location.href = preferenceData.init_point;
+
+    } catch (err) {
+      setStatus('error');
+      setError(err.message);
+    }
   };
 
-  // Simulación del total (basado en tu CarritoPage.jsx)
-  const subtotal = 219980; // (39990 + 179990)
+  const subtotal = 219980;
   const envio = 3500;
   const totalPedido = subtotal + envio;
 
   return (
     <main className="checkout-container">
       <div className="checkout-layout">
-        
-        {/* --- Columna Izquierda: Formulario --- */}
         <div className="checkout-form-section">
           <h1 className="checkout-title">Finalizar Compra</h1>
           
           <form onSubmit={handleSubmit} className="checkout-form">
-            
-            {/* --- 1. Contacto --- */}
+            {status === 'error' && <div className="error-message">{error}</div>}
+
             <div className="form-section">
               <h2>Información de Contacto</h2>
               <div className="form-group">
@@ -55,7 +102,6 @@ function CheckoutPage() {
               </div>
             </div>
 
-            {/* --- 2. Envío --- */}
             <div className="form-section">
               <h2>Dirección de Envío</h2>
               <div className="form-row">
@@ -94,7 +140,6 @@ function CheckoutPage() {
               </div>
             </div>
 
-            {/* --- 3. Método de Pago --- */}
             <div className="form-section">
               <h2>Método de Pago</h2>
               <div className="payment-options">
@@ -109,19 +154,15 @@ function CheckoutPage() {
               </div>
             </div>
 
-            <button type="submit" className="checkout-submit-button">
-              {formData.metodoPago === 'transferencia' ? 'Finalizar Pedido' : 'Ir a Pagar'}
+            <button type="submit" className="checkout-submit-button" disabled={status === 'submitting'}>
+              {status === 'submitting' ? 'Procesando...' : (formData.metodoPago === 'transferencia' ? 'Finalizar Pedido' : 'Ir a Pagar')}
             </button>
           </form>
         </div>
 
-        {/* --- Columna Derecha: Resumen --- */}
         <div className="checkout-summary-section">
           <div className="checkout-summary">
             <h3>Resumen del Pedido</h3>
-            {/* Aquí puedes hacer un .map() de los items del carrito si los pasas por 'props' o 'context'
-                Por ahora, mostramos el total simulado.
-            */}
             <div className="summary-row">
               <span>Subtotal</span>
               <span>CLP${subtotal.toLocaleString('es-CL')}</span>

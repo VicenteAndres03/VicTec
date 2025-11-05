@@ -23,9 +23,6 @@ class SoporteRequest {
 
 @RestController
 @RequestMapping("/api/v1/soporte")
-// ¡MUY IMPORTANTE! Esto permite que tu React (en localhost:5173) 
-// hable con tu Backend (en localhost:8080)
-@CrossOrigin(origins = "http://localhost:5173") 
 public class SoporteController {
 
     @Autowired

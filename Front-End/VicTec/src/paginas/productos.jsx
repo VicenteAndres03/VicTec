@@ -1,34 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // <-- 1. IMPORTA Link
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import './productos.css';
-
-// --- SIMULACIÓN DE BASE DE DATOS ---
-const mockProductos = [
-  {
-    id: 1,
-    nombre: 'Auriculares Pro-Gen',
-    marca: 'VicTec',
-    precio: 39990,
-    precioAntiguo: 59990,
-    enOferta: true,
-    imgUrl: 'https://i.imgur.com/8Q1mP0B.png',
-  },
-  {
-    id: 2,
-    nombre: 'Smartwatch X5',
-    marca: 'VicTec',
-    precio: 179990,
-    precioAntiguo: null,
-    enOferta: false,
-    imgUrl: 'https://i.imgur.com/7H2j3bE.png',
-  },
-];
-// ---------------------------------
-
 
 // --- Sub-componente para los Filtros ---
 function ProductFilters() {
-  // ... (El componente de filtros no cambia) ...
   const [activeFilter, setActiveFilter] = useState('todos');
 
   return (
@@ -60,18 +35,44 @@ function ProductFilters() {
 // --- Componente Principal de la Página ---
 function ProductosPage() {
   const navigate = useNavigate();
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // <-- 2. MODIFICADO: Acepta el 'event' (e) -->
+  useEffect(() => {
+    const fetchProductos = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/v1/productos');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setProductos(data);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductos();
+  }, []); // El array vacío asegura que se ejecute solo una vez
+
   const handleAddToCart = (e) => {
-    // ¡MUY IMPORTANTE!
-    // Esto evita que al hacer clic en el botón, también
-    // se active el <Link> de la tarjeta.
     e.preventDefault(); 
     e.stopPropagation(); 
 
     console.log("Producto añadido (simulación)... Redirigiendo al carrito.");
     navigate('/carrito');
   };
+
+  if (loading) {
+    return <div className="productos-container"><p>Cargando productos...</p></div>;
+  }
+
+  if (error) {
+    return <div className="productos-container"><p>Error al cargar productos: {error}</p></div>;
+  }
 
   return (
     <main className="productos-container">
@@ -81,17 +82,14 @@ function ProductosPage() {
 
       <div className="productos-grid">
         
-        {/* --- 3. Mapeamos desde nuestra simulación de BD --- */}
-        {mockProductos.map((producto) => (
+        {productos.map((producto) => (
           
-          // <-- 4. CADA TARJETA ES UN LINK a su 'id' -->
           <Link 
             to={`/productos/${producto.id}`} 
             className="product-card" 
             key={producto.id}
           >
             <div className="product-image-box">
-              {/* (Usamos la imgUrl del producto) */}
               <img src={producto.imgUrl} alt={producto.nombre} className="product-image-real" />
               {producto.enOferta && <span className="sale-tag">Sale</span>}
             </div>
@@ -102,7 +100,7 @@ function ProductosPage() {
                 <span className="current-price">
                   CLP${producto.precio.toLocaleString('es-CL')}
                 </span>
-                {producto.enOferta && (
+                {producto.enOferta && producto.precioAntiguo && (
                   <span className="old-price">
                     CLP${producto.precioAntiguo.toLocaleString('es-CL')}
                   </span>
@@ -112,7 +110,7 @@ function ProductosPage() {
               
               <button 
                 className="product-add-to-cart-button"
-                onClick={handleAddToCart} // <-- 5. El onClick sigue aquí
+                onClick={handleAddToCart}
               >
                 Añadir al Carrito
               </button>
@@ -124,22 +122,5 @@ function ProductosPage() {
     </main>
   );
 }
-
-// Estilo rápido para la imagen (añade esto a productos.css si quieres)
-/*
-.product-image-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 250px;
-  background-color: #f5f5f5;
-  overflow: hidden;
-}
-.product-image-real {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; 
-}
-*/
 
 export default ProductosPage;
