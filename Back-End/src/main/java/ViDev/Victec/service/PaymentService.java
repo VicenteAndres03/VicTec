@@ -44,7 +44,11 @@ public class PaymentService {
                     .id(pedidoItem.getProducto().getId().toString())
                     .title(pedidoItem.getProducto().getNombre())
                     .quantity(pedidoItem.getCantidad())
-                    .unitPrice(new BigDecimal(pedidoItem.getProducto().getPrecio()))
+                    // --- INICIO DE LA CORRECCIÓN ---
+                    // 1. Usamos pedidoItem.getPrecio() (que es un BigDecimal)
+                    //    en lugar de crear un new BigDecimal desde un double.
+                    .unitPrice(pedidoItem.getPrecio()) 
+                    // --- FIN DE LA CORRECCIÓN ---
                     .currencyId("CLP")
                     .build();
             items.add(item);
@@ -62,7 +66,7 @@ public class PaymentService {
                         .failure("http://localhost:5173/pago-fallido")
                         .pending("http://localhost:5173/pago-pendiente")
                         .build())
-                .autoReturn("approved")
+                // --- CORRECCIÓN 2: Eliminamos la línea .autoReturn("approved") ---
                 .build();
 
         PreferenceClient client = new PreferenceClient();

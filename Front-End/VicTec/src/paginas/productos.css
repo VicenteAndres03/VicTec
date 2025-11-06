@@ -87,7 +87,7 @@
 
 .product-image-box {
   position: relative;
-  background-color: #f5f5f5;
+  background-color: #f5f5f5; /* Este es el fondo gris claro del cuadro */
   height: 250px;
   display: flex;
   align-items: center;
@@ -97,7 +97,8 @@
 }
 
 /* * ⬇️ ⬇️ ⬇️ ¡AQUÍ ESTÁ EL ARREGLO! ⬇️ ⬇️ ⬇️
- * Esta es la regla que faltaba para la imagen
+ * Esta regla hace que tu imagen (que tiene la clase 'product-image-real')
+ * se expanda para llenar el cuadro de 250px.
 */
 .product-image-real {
   width: 100%;

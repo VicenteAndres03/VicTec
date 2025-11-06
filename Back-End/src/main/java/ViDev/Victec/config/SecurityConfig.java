@@ -72,7 +72,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/v1/auth/**").permitAll()
+                // --- INICIO DE LA MODIFICACIÓN ---
+                // Permite login y registro públicamente
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                // Requiere autenticación para el resto de /auth/ (como /change-password)
+                .requestMatchers("/api/v1/auth/**").authenticated()
+                // --- FIN DE LA MODIFICACIÓN ---
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/productos/**").permitAll()
                 .requestMatchers("/api/v1/soporte/**").permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

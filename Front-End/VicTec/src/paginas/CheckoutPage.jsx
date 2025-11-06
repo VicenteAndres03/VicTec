@@ -5,8 +5,8 @@ import './CheckoutPage.css';
 
 function CheckoutPage() {
   const navigate = useNavigate();
-  // --- CAMBIO: Añadimos isTokenValid ---
-  const { getAuthHeader, isAuthenticated, user, isTokenValid } = useAuth();
+  // --- CAMBIO 1: Importamos 'logout' ---
+  const { getAuthHeader, isAuthenticated, user, isTokenValid, logout } = useAuth();
 
   // Estados para el carrito
   const [cartItems, setCartItems] = useState([]);
@@ -30,24 +30,18 @@ function CheckoutPage() {
 
   // Cargar el carrito al entrar a la página
   useEffect(() => {
-    // --- INICIO DE CAMBIO LÓGICO ---
     console.log('=== VERIFICACIÓN INICIAL CHECKOUT ===');
     
-    // 1. Llama a isTokenValid() ANTES que cualquier otra cosa.
-    //    Esta función (con el arreglo del Paso 1) limpiará la sesión
-    //    automáticamente si el token está expirado o corrupto.
     if (!isTokenValid()) { 
       console.log('Token no válido o expirado, redirigiendo a login');
       navigate('/login');
       return;
     }
-    // 2. Si isTokenValid() pasa, sabemos que isAuthenticated es confiable.
     if (!isAuthenticated) {
       console.log('Usuario no autenticado (post-validación), redirigiendo a login');
       navigate('/login');
       return;
     }
-    // --- FIN DE CAMBIO LÓGICO ---
 
     const fetchCarrito = async () => {
       try {
@@ -68,8 +62,9 @@ function CheckoutPage() {
           const errorData = await response.json().catch(() => ({}));
           console.error('Error de autorización al cargar carrito:', errorData);
           setCartError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-          // Forzamos la limpieza y redirección
-          isTokenValid(); // Esto llamará a logout()
+          
+          // --- CAMBIO 2: Llamamos a 'logout()' directamente ---
+          logout();
           navigate('/login');
           return;
         }
@@ -108,21 +103,21 @@ function CheckoutPage() {
     };
 
     fetchCarrito();
-  }, [isAuthenticated, getAuthHeader, navigate, user, isTokenValid]); // <-- Añadimos isTokenValid a las dependencias
+    
+    // --- CAMBIO 3: Añadimos 'logout' al array de dependencias ---
+  }, [isAuthenticated, getAuthHeader, navigate, user, isTokenValid, logout]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // --- CAMBIO 4: Reemplazamos TODA la función handleSubmit ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // --- INICIO DE CAMBIO: Validación en handleSubmit ---
     console.log('=== INICIANDO CHECKOUT ===');
     
-    // 3. Volvemos a validar el token ANTES de enviar el formulario
-    //    (por si expiró mientras el usuario llenaba los campos)
     if (!isTokenValid()) {
       setError('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
       setStatus('error');
@@ -131,7 +126,6 @@ function CheckoutPage() {
       }, 2000);
       return;
     }
-    // --- FIN DE CAMBIO ---
 
     if (cartItems.length === 0) {
       setError('Tu carrito está vacío');
@@ -164,78 +158,81 @@ function CheckoutPage() {
       const direccionData = await direccionResponse.json();
       console.log('Dirección creada:', direccionData);
 
-      console.log('2. Creando pedido...');
-      const pedidoResponse = await fetch('/api/v1/pedidos/crear', {
+      // --- INICIO DE LÓGICA MODIFICADA ---
+      
+      // Si el pago es transferencia, NO llamamos a MercadoPago.
+      // Usamos la ruta de creación de pedido antigua (que no crea pago).
+      if (formData.metodoPago === 'transferencia') {
+        console.log('2. Creando pedido (solo transferencia)...');
+        const pedidoResponse = await fetch('/api/v1/pedidos/crear', {
+          method: 'POST',
+          headers: getAuthHeader(),
+          body: JSON.stringify({ direccionId: direccionData.id }),
+        });
+        
+        if (!pedidoResponse.ok) {
+          const errorData = await pedidoResponse.json().catch(() => ({ error: 'Error al crear el pedido' }));
+          throw new Error(errorData.error || 'Error al crear el pedido');
+        }
+        
+        console.log('Pedido creado:', await pedidoResponse.json());
+        setStatus('success');
+        navigate('/compra-exitosa'); // Ir a la página de éxito
+        return; // Termina la ejecución aquí
+      }
+
+      // Si el pago es con Webpay/MercadoPago, usamos el NUEVO endpoint
+      console.log('2. Creando pedido Y preferencia de pago (Webpay)...');
+      
+      const authHeaders = getAuthHeader();
+      if (!authHeaders.Authorization) {
+        throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
+      }
+      
+      // Llamada al NUEVO endpoint que hace todo en el backend
+      const response = await fetch('/api/v1/pedidos/crear-y-pagar', {
         method: 'POST',
-        headers: getAuthHeader(),
+        headers: authHeaders,
         body: JSON.stringify({ direccionId: direccionData.id }),
       });
       
-      if (!pedidoResponse.ok) {
-        const errorData = await pedidoResponse.json().catch(() => ({ error: 'Error al crear el pedido' }));
-        throw new Error(errorData.error || 'Error al crear el pedido');
+      console.log('=== RESPUESTA DE CREAR-Y-PAGAR ===');
+      console.log('Status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Error al procesar el pedido' }));
+        console.error('Error en crear-y-pagar:', errorData);
+        
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
+        }
+        
+        // ¡Este error ahora SÍ es correcto!
+        // Si el backend dice "Stock insuficiente", se mostrará aquí y la transacción se habrá revertido.
+        throw new Error(errorData.error || 'Error al crear el pedido y la preferencia de pago');
       }
       
-      const pedidoData = await pedidoResponse.json();
-      console.log('Pedido creado:', pedidoData);
-
-      if (formData.metodoPago === 'webpay') {
-        console.log('3. Creando preferencia de pago...');
-        console.log('PedidoId a enviar:', pedidoData.id);
-        
-        // VALIDACIÓN CRÍTICA DEL TOKEN
-        const authHeaders = getAuthHeader();
-        console.log('=== VERIFICACIÓN PRE-PAYMENT ===');
-        console.log('Headers disponibles:', authHeaders);
-        
-        if (!authHeaders.Authorization) {
-          // Esto no debería pasar gracias al isTokenValid() de arriba, pero es una buena defensa
-          throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
-        }
-        
-        const preferenceResponse = await fetch('/api/v1/payment/create-preference', {
-          method: 'POST',
-          headers: authHeaders,
-          body: JSON.stringify({ pedidoId: pedidoData.id }),
-        });
-        
-        console.log('=== RESPUESTA DE PREFERENCIA ===');
-        console.log('Status:', preferenceResponse.status);
-        
-        if (!preferenceResponse.ok) {
-          const errorData = await preferenceResponse.json().catch(() => ({ error: 'Error al crear la preferencia de pago' }));
-          console.error('Error en preferencia:', errorData);
-          
-          if (preferenceResponse.status === 401 || preferenceResponse.status === 403) {
-            throw new Error('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
-          }
-          
-          throw new Error(errorData.error || 'Error al crear la preferencia de pago');
-        }
-        
-        const preferenceData = await preferenceResponse.json();
-        console.log('Preferencia creada:', preferenceData);
-        
-        if (!preferenceData.init_point) {
-          throw new Error('No se recibió la URL de pago de Mercado Pago');
-        }
-
-        console.log('4. Redirigiendo a Mercado Pago...');
-        window.location.href = preferenceData.init_point;
-      } else {
-        setStatus('success');
-        navigate('/compra-exitosa');
+      const preferenceData = await response.json();
+      console.log('Preferencia creada:', preferenceData);
+      
+      if (!preferenceData.init_point) {
+        throw new Error('No se recibió la URL de pago de Mercado Pago');
       }
+
+      console.log('3. Redirigiendo a Mercado Pago...');
+      window.location.href = preferenceData.init_point;
+
+      // --- FIN DE LÓGICA MODIFICADA ---
 
     } catch (err) {
       console.error('=== ERROR EN CHECKOUT ===');
       console.error('Mensaje:', err.message);
       setStatus('error');
       setError(err.message || 'Ocurrió un error al procesar el pago');
-      // Si el error es de sesión, lo mandamos al login
+      
       if (err.message.toLowerCase().includes('sesión') || err.message.toLowerCase().includes('token')) {
         setTimeout(() => {
-          isTokenValid(); // Llama a logout
+          logout(); // Llamamos a logout aquí también
           navigate('/login');
         }, 2500);
       }
@@ -249,9 +246,6 @@ function CheckoutPage() {
   }, 0);
   const envio = subtotal > 0 ? 3500 : 0;
   const totalPedido = subtotal + envio;
-  
-  // (El JSX de retorno no cambia, así que lo omito por brevedad,
-  // pero debes reemplazar el archivo completo)
   
   return (
     <main className="checkout-container">

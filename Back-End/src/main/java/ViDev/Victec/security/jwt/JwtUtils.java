@@ -38,7 +38,6 @@ public class JwtUtils {
   }
   
   // --- 2. MÉTODO key() CORREGIDO ---
-  // (Esta es la lógica correcta que tenías en tu otro archivo JwtUtil.java)
   private Key key() {
     byte[] bytes = jwtSecret.getBytes();
     // Asegura que la clave tenga exactamente 32 bytes (256 bits) para HS256

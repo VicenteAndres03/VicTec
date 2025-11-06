@@ -86,3 +86,34 @@
   transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(0, 208, 132, 0.3);
 }
+
+/* --- INICIO: ESTILOS AÑADIDOS --- */
+
+.mi-cuenta-button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* --- Status Messages (Copiados de soporte.css) --- */
+.status-message {
+  text-align: center;
+  font-weight: 600;
+  margin-top: 0; /* Ajustado para este form */
+  margin-bottom: 1.25rem; /* Ajustado para este form */
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.status-message.exito {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+/* --- FIN: ESTILOS AÑADIDOS --- */
