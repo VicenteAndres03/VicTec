@@ -1,11 +1,14 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+// ¡Importamos Outlet!
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import './index.css';
 
 import { AuthProvider } from './context/AuthContext';
-// --- 1. IMPORTA EL PROVEEDOR DE GOOGLE ---
 import { GoogleOAuthProvider } from '@react-oauth/google';
+
+// --- 1. IMPORTAMOS LA RUTA PÚBLICA ---
+import PublicRoute from './componentes/PublicRoute.jsx'; 
 
 // --- LAYOUTS ---
 import App from './App.jsx';
@@ -30,13 +33,12 @@ import CompraExitosaPage from './paginas/CompraExitosaPage.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    {/* --- 2. ENVUELVE TODO CON EL PROVEEDOR DE GOOGLE --- */}
     <GoogleOAuthProvider clientId="243549587493-pqmksjaiegdcn626ba4gtqf7ef7i10b7.apps.googleusercontent.com">
       <BrowserRouter>
         <AuthProvider>
           <Routes>
             
-            {/* --- 1. Rutas Públicas (CON Header y Footer) --- */}
+            {/* --- RUTAS DENTRO DEL LAYOUT PRINCIPAL (HEADER/FOOTER) --- */}
             <Route path="/" element={<App />}>
               <Route index element={<HomePage />} />
               <Route path="productos" element={<ProductosPage />} />
@@ -47,16 +49,23 @@ createRoot(document.getElementById('root')).render(
               <Route path="checkout" element={<CheckoutPage />} />
               <Route path="mi-cuenta" element={<MiCuentaPage />} />
               <Route path="mis-pedidos" element={<MisPedidosPage />} />
-              
               <Route path="compra-exitosa" element={<CompraExitosaPage />} />
-              <Route path="login" element={<LoginPage />} />
-              <Route path="register" element={<RegisterPage />} />
+              
+              {/* --- 2. RUTAS PÚBLICAS PROTEGIDAS --- */}
+              {/* Si estás logueado, te redirige a '/' */}
+              <Route element={<PublicRoute />}>
+                <Route path="login" element={<LoginPage />} />
+                <Route path="register" element={<RegisterPage />} />
+              </Route>
+              
             </Route>
 
-            {/* --- 2. Ruta de Admin Auth (SIN Header/Footer) --- */}
-            <Route path="/admin/login" element={<AdminLoginPage />} />
-
-            {/* --- 3. Rutas de Admin (CON AdminHeader) --- */}
+            {/* --- RUTAS PÚBLICAS FUERA DEL LAYOUT --- */}
+            <Route element={<PublicRoute />}>
+              <Route path="/admin/login" element={<AdminLoginPage />} />
+            </Route>
+            
+            {/* --- RUTAS DE ADMIN (FALTARÍA PROTEGER ESTAS) --- */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route path="reportes" element={<ReportesPage />} />
               <Route path="productos" element={<GestionProductosPage />} />

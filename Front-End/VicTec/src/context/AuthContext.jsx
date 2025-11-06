@@ -4,50 +4,81 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => {
-    try {
-      const storedToken = localStorage.getItem('token');
-      console.log('=== INICIALIZANDO AuthContext ===');
-      console.log('Token inicial en localStorage:', storedToken ? 'Existe' : 'No existe');
-      return storedToken;
-    } catch (e) {
-      console.error('Error al leer token inicial:', e);
-      return null;
-    }
-  });
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Cargar el usuario al inicio
+  // Cargar el usuario al inicio - SOLO UNA VEZ
   useEffect(() => {
-    console.log('=== useEffect AuthContext - Cargando usuario ===');
-    console.log('Token actual:', token ? 'Existe' : 'No existe');
+    console.log('=== INICIALIZANDO AuthContext ===');
     
-    if (token) {
+    const initializeAuth = () => {
       try {
+        const storedToken = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
+        
+        console.log('Token en localStorage:', storedToken ? 'Existe' : 'No existe');
         console.log('Usuario en localStorage:', storedUser ? 'Existe' : 'No existe');
         
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          console.log('Usuario parseado:', parsedUser);
-          setUser(parsedUser);
+        if (storedToken && storedToken !== 'null' && storedToken !== 'undefined') {
+          // Validar que el token sea un JWT válido
+          try {
+            const parts = storedToken.split('.');
+            if (parts.length !== 3) {
+              throw new Error('Token inválido');
+            }
+            
+            const payload = JSON.parse(atob(parts[1]));
+            const now = Date.now() / 1000;
+            
+            // Si el token expiró, limpiar todo
+            if (payload.exp <= now) {
+              console.warn('Token expirado, limpiando sesión');
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              setToken(null);
+              setUser(null);
+              setLoading(false);
+              return;
+            }
+            
+            // Token válido, cargar usuario
+            if (storedUser && storedUser !== 'null' && storedUser !== 'undefined') {
+              const parsedUser = JSON.parse(storedUser);
+              console.log('Usuario cargado:', parsedUser.email);
+              setToken(storedToken);
+              setUser(parsedUser);
+            } else {
+              console.warn('Token existe pero no hay usuario, limpiando');
+              localStorage.removeItem('token');
+              setToken(null);
+              setUser(null);
+            }
+          } catch (e) {
+            console.error('Error al validar token:', e);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setToken(null);
+            setUser(null);
+          }
         } else {
-          console.warn('Token existe pero no hay usuario en localStorage');
-          // Si hay token pero no usuario, limpiar todo
-          localStorage.removeItem('token');
+          console.log('No hay token válido');
+          setUser(null);
           setToken(null);
         }
       } catch (e) {
-        console.error('Error al cargar usuario:', e);
-        // Limpiar datos corruptos
+        console.error('Error al inicializar auth:', e);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+        console.log('Inicialización de AuthContext completada');
       }
-    } else {
-      console.log('No hay token, limpiando usuario');
-      setUser(null);
-    }
-  }, [token]);
+    };
+
+    initializeAuth();
+  }, []); // Solo se ejecuta una vez al montar
 
   const login = (userData, authToken) => {
     try {
@@ -68,12 +99,6 @@ export function AuthProvider({ children }) {
       localStorage.setItem('token', authToken);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      // Verificar que se guardó correctamente
-      const savedToken = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
-      console.log('Token guardado:', savedToken ? 'Sí' : 'No');
-      console.log('Usuario guardado:', savedUser ? 'Sí' : 'No');
-      
       setToken(authToken);
       setUser(userData);
       
@@ -84,8 +109,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // --- INICIO DE CAMBIO EN LOGOUT ---
-  // Hacemos que logout sea un useCallback para que isTokenValid pueda depender de él
   const logout = useCallback(() => {
     try {
       console.log('=== FUNCIÓN LOGOUT ===');
@@ -97,17 +120,13 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.error('Error al hacer logout:', e);
     }
-  }, []); // Logout no tiene dependencias
-  // --- FIN DE CAMBIO EN LOGOUT ---
+  }, []); 
 
-  // Usar useCallback para evitar que getAuthHeader cambie en cada render
   const getAuthHeader = useCallback(() => {
-    // Leer directamente de localStorage para asegurar que tenemos el valor más reciente
     const currentToken = localStorage.getItem('token');
     
     console.log('=== getAuthHeader llamado ===');
-    console.log('Token de state:', token ? 'Existe' : 'No existe');
-    console.log('Token de localStorage:', currentToken ? 'Existe' : 'No existe');
+    console.log('Token disponible:', currentToken ? 'Sí' : 'No');
     
     if (!currentToken) {
       console.warn('ADVERTENCIA: No hay token disponible');
@@ -116,31 +135,30 @@ export function AuthProvider({ children }) {
       };
     }
     
-    const headers = {
+    return {
       'Authorization': `Bearer ${currentToken}`,
       'Content-Type': 'application/json'
     };
-    
-    console.log('Headers generados:', {
-      ...headers,
-      'Authorization': headers.Authorization.substring(0, 20) + '...' // Log parcial por seguridad
-    });
-    
-    return headers;
-  }, [token]); // Dependencia: token
+  }, []);
 
-  // --- INICIO DE CAMBIO EN ISTOKENVALID ---
-  // Función para verificar si el token es válido (sin hacer request al backend)
   const isTokenValid = useCallback(() => {
     const currentToken = localStorage.getItem('token');
-    if (!currentToken) return false;
+    
+    if (!currentToken || currentToken === "null" || currentToken === "undefined") {
+      console.log('No se encontró token válido.');
+      return false;
+    }
     
     try {
-      // Decodificar el payload del JWT (parte central entre los puntos)
-      const payload = JSON.parse(atob(currentToken.split('.')[1]));
+      const parts = currentToken.split('.');
+      if (parts.length !== 3) {
+        console.warn("Token en localStorage no es un JWT válido (formato incorrecto).");
+        logout();
+        return false;
+      }
       
-      // Verificar si el token expiró
-      const now = Date.now() / 1000; // Convertir a segundos
+      const payload = JSON.parse(atob(parts[1]));
+      const now = Date.now() / 1000;
       const isValid = payload.exp > now;
       
       console.log('=== Validación de Token ===');
@@ -150,35 +168,35 @@ export function AuthProvider({ children }) {
       
       if (!isValid) {
         console.warn('Token expirado, limpiando sesión...');
-        logout(); // Llama a la función logout memorizada
+        logout();
       }
       
       return isValid;
     } catch (e) {
       console.error('Error al validar token:', e);
-      logout(); // Llama a logout si el token está corrupto
+      logout();
       return false;
     }
-  }, [logout]); // ¡Añadimos logout como dependencia!
-  // --- FIN DE CAMBIO EN ISTOKENVALID ---
+  }, [logout]);
 
   const value = {
     user,
     isAuthenticated: !!user && !!token,
-    token, // Exponemos el token también
+    token, 
     login,
     logout,
     getAuthHeader,
-    isTokenValid
+    isTokenValid,
+    loadingAuth: loading 
   };
 
-  // Log del estado actual cuando cambia
   useEffect(() => {
-    console.log('=== Estado de AuthContext actualizado ===');
+    console.log('=== Estado de AuthContext ===');
     console.log('Usuario:', user ? user.email : 'No autenticado');
     console.log('Token:', token ? 'Presente' : 'Ausente');
     console.log('isAuthenticated:', !!user && !!token);
-  }, [user, token]);
+    console.log('loadingAuth:', loading);
+  }, [user, token, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

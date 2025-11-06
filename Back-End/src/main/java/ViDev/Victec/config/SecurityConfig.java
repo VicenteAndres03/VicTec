@@ -73,13 +73,19 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 // --- INICIO DE LA MODIFICACIÓN ---
-                // Permite login y registro públicamente
-                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                // Permite login, registro Y login con google públicamente
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/google-login").permitAll()
                 // Requiere autenticación para el resto de /auth/ (como /change-password)
                 .requestMatchers("/api/v1/auth/**").authenticated()
                 // --- FIN DE LA MODIFICACIÓN ---
+                
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/productos/**").permitAll()
                 .requestMatchers("/api/v1/soporte/**").permitAll()
+
+                // --- ¡LÍNEAS AÑADIDAS! ---
+                // Permite las rutas de redirect de MercadoPago (que son rutas del Frontend)
+                .requestMatchers("/compra-exitosa", "/pago-fallido", "/pago-pendiente").permitAll()
+                
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/carrito/**").authenticated()
                 .requestMatchers("/api/v1/direcciones/**").authenticated()

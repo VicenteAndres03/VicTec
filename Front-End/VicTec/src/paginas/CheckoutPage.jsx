@@ -5,8 +5,7 @@ import './CheckoutPage.css';
 
 function CheckoutPage() {
   const navigate = useNavigate();
-  // --- CAMBIO 1: Importamos 'logout' ---
-  const { getAuthHeader, isAuthenticated, user, isTokenValid, logout } = useAuth();
+  const { getAuthHeader, isAuthenticated, user, isTokenValid, logout, loadingAuth } = useAuth();
 
   // Estados para el carrito
   const [cartItems, setCartItems] = useState([]);
@@ -28,18 +27,43 @@ function CheckoutPage() {
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
 
-  // Cargar el carrito al entrar a la página
+  useEffect(() => {
+    const checkPaymentStatus = () => {
+      const params = new URLSearchParams(window.location.search);
+      const paymentId = params.get('payment_id');
+      const paymentStatus = params.get('status');
+      const collectionStatus = params.get('collection_status'); // Another common parameter
+
+      // Only check for cancellation if we have some indication we are coming back from payment
+      if (params.has('collection_id') || params.has('payment_id')) {
+        if (paymentStatus === 'null' || paymentStatus === 'rejected' || collectionStatus === 'rejected') {
+          // User cancelled or payment failed, redirect to cart
+          navigate('/carrito');
+        }
+      }
+    };
+
+    checkPaymentStatus();
+  }, [navigate]);
+
+  // Efecto para cargar el carrito
   useEffect(() => {
     console.log('=== VERIFICACIÓN INICIAL CHECKOUT ===');
     
+    if (loadingAuth) {
+      console.log('AuthContext está cargando, esperando...');
+      return; 
+    }
+    
     if (!isTokenValid()) { 
       console.log('Token no válido o expirado, redirigiendo a login');
-      navigate('/login');
+      navigate('/login', { replace: true });
       return;
     }
+    
     if (!isAuthenticated) {
       console.log('Usuario no autenticado (post-validación), redirigiendo a login');
-      navigate('/login');
+      navigate('/login', { replace: true });
       return;
     }
 
@@ -50,7 +74,6 @@ function CheckoutPage() {
         
         const headers = getAuthHeader();
         console.log('=== CARGANDO CARRITO ===');
-        console.log('Headers enviados:', headers);
         
         const response = await fetch('/api/v1/carrito', {
           headers: headers,
@@ -63,9 +86,8 @@ function CheckoutPage() {
           console.error('Error de autorización al cargar carrito:', errorData);
           setCartError('Sesión expirada. Por favor, inicia sesión nuevamente.');
           
-          // --- CAMBIO 2: Llamamos a 'logout()' directamente ---
           logout();
-          navigate('/login');
+          navigate('/login', { replace: true });
           return;
         }
 
@@ -104,15 +126,13 @@ function CheckoutPage() {
 
     fetchCarrito();
     
-    // --- CAMBIO 3: Añadimos 'logout' al array de dependencias ---
-  }, [isAuthenticated, getAuthHeader, navigate, user, isTokenValid, logout]);
+  }, [isAuthenticated, getAuthHeader, navigate, user, isTokenValid, logout, loadingAuth]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- CAMBIO 4: Reemplazamos TODA la función handleSubmit ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -122,7 +142,7 @@ function CheckoutPage() {
       setError('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
       setStatus('error');
       setTimeout(() => {
-        navigate('/login');
+        navigate('/login', { replace: true });
       }, 2000);
       return;
     }
@@ -146,7 +166,7 @@ function CheckoutPage() {
           ciudad: formData.ciudad,
           region: formData.region,
           codigoPostal: formData.codigoPostal,
-          pais: 'Chile' // Hardcodeado 'pais' ya que no está en tu formulario
+          pais: 'Chile' 
         }),
       });
       
@@ -158,10 +178,7 @@ function CheckoutPage() {
       const direccionData = await direccionResponse.json();
       console.log('Dirección creada:', direccionData);
 
-      // --- INICIO DE LÓGICA MODIFICADA ---
       
-      // Si el pago es transferencia, NO llamamos a MercadoPago.
-      // Usamos la ruta de creación de pedido antigua (que no crea pago).
       if (formData.metodoPago === 'transferencia') {
         console.log('2. Creando pedido (solo transferencia)...');
         const pedidoResponse = await fetch('/api/v1/pedidos/crear', {
@@ -177,11 +194,10 @@ function CheckoutPage() {
         
         console.log('Pedido creado:', await pedidoResponse.json());
         setStatus('success');
-        navigate('/compra-exitosa'); // Ir a la página de éxito
-        return; // Termina la ejecución aquí
+        navigate('/compra-exitosa', { replace: true }); 
+        return; 
       }
 
-      // Si el pago es con Webpay/MercadoPago, usamos el NUEVO endpoint
       console.log('2. Creando pedido Y preferencia de pago (Webpay)...');
       
       const authHeaders = getAuthHeader();
@@ -189,7 +205,6 @@ function CheckoutPage() {
         throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
       }
       
-      // Llamada al NUEVO endpoint que hace todo en el backend
       const response = await fetch('/api/v1/pedidos/crear-y-pagar', {
         method: 'POST',
         headers: authHeaders,
@@ -207,8 +222,6 @@ function CheckoutPage() {
           throw new Error('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
         }
         
-        // ¡Este error ahora SÍ es correcto!
-        // Si el backend dice "Stock insuficiente", se mostrará aquí y la transacción se habrá revertido.
         throw new Error(errorData.error || 'Error al crear el pedido y la preferencia de pago');
       }
       
@@ -219,10 +232,19 @@ function CheckoutPage() {
         throw new Error('No se recibió la URL de pago de Mercado Pago');
       }
 
-      console.log('3. Redirigiendo a Mercado Pago...');
-      window.location.href = preferenceData.init_point;
-
-      // --- FIN DE LÓGICA MODIFICADA ---
+      console.log('3. Estableciendo bandera de pago...');
+      sessionStorage.setItem('leavingForPayment', 'true');
+      
+      // Verificar que se guardó
+      const verificar = sessionStorage.getItem('leavingForPayment');
+      console.log('Bandera guardada:', verificar);
+      
+      console.log('4. Redirigiendo a Mercado Pago en 100ms...');
+      
+      // Dar un pequeño delay para asegurar que sessionStorage se guarde
+      setTimeout(() => {
+        window.location.href = preferenceData.init_point;
+      }, 100);
 
     } catch (err) {
       console.error('=== ERROR EN CHECKOUT ===');
@@ -232,8 +254,8 @@ function CheckoutPage() {
       
       if (err.message.toLowerCase().includes('sesión') || err.message.toLowerCase().includes('token')) {
         setTimeout(() => {
-          logout(); // Llamamos a logout aquí también
-          navigate('/login');
+          logout(); 
+          navigate('/login', { replace: true });
         }, 2500);
       }
     }
@@ -247,13 +269,20 @@ function CheckoutPage() {
   const envio = subtotal > 0 ? 3500 : 0;
   const totalPedido = subtotal + envio;
   
+  // Mostrar carga mientras el AuthContext se inicializa
+  if (loadingAuth || loadingCart) {
+    return (
+      <main className="checkout-container">
+        <div className="checkout-loading">
+          <p>Cargando...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="checkout-container">
-      {loadingCart ? (
-        <div className="checkout-loading">
-          <p>Cargando carrito...</p>
-        </div>
-      ) : cartError ? (
+      {cartError ? (
         <div className="checkout-error">
           <p style={{ color: 'red', fontSize: '1.1rem', fontWeight: 'bold' }}>Error: {cartError}</p>
           <button 

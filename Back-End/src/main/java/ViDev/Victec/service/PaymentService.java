@@ -63,7 +63,7 @@ public class PaymentService {
                 .externalReference(pedido.getId().toString())
                 .backUrls(PreferenceBackUrlsRequest.builder()
                         .success("http://localhost:5173/compra-exitosa")
-                        .failure("http://localhost:5173/pago-fallido")
+                        .failure("http://localhost:5173/checkout")
                         .pending("http://localhost:5173/pago-pendiente")
                         .build())
                 // --- CORRECCIÓN 2: Eliminamos la línea .autoReturn("approved") ---
