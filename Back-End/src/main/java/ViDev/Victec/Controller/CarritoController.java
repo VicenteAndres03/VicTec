@@ -60,4 +60,13 @@ public class CarritoController {
         carritoService.clearCarrito(currentUser.getId());
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/update-cantidad")
+    public ResponseEntity<Carrito> updateCantidad(@RequestBody Map<String, Object> payload) {
+        Long productoId = Long.parseLong(payload.get("productoId").toString());
+        int cantidad = Integer.parseInt(payload.get("cantidad").toString());
+        Usuario currentUser = getCurrentUser();
+        Carrito carrito = carritoService.updateCantidad(currentUser.getId(), productoId, cantidad);
+        return ResponseEntity.ok(carrito);
+    }
 }

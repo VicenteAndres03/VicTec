@@ -29,29 +29,36 @@ function DescripcionTab({ producto }) {
   );
 }
 function EspecificacionesTab({ producto }) {
+  const especificaciones = producto?.especificaciones || [];
+  
   return (
     <div className="tab-content-especificaciones">
       <h4>Especificaciones Técnicas</h4>
-      <ul className="detalle-especificaciones-lista">
-        {/* Tu modelo Especificacion.java tiene 'key' y 'value', está perfecto */}
-        {producto.especificaciones.map((spec) => (
-          <li key={spec.id}>
-            <strong>{spec.key}:</strong> {spec.value}
-          </li>
-        ))}
-      </ul>
+      {especificaciones.length === 0 ? (
+        <p>Este producto no tiene especificaciones disponibles.</p>
+      ) : (
+        <ul className="detalle-especificaciones-lista">
+          {especificaciones.map((spec) => (
+            <li key={spec.id}>
+              <strong>{spec.key}:</strong> {spec.value}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 function ComentariosTab({ producto }) {
+  const comentarios = producto?.comentarios || [];
+  
   return (
     <div className="tab-content-comentarios">
-      <h4>Opiniones del Producto ({producto.comentarios.length})</h4>
+      <h4>Opiniones del Producto ({comentarios.length})</h4>
       <div className="comentarios-lista">
-        {producto.comentarios.length === 0 ? (
+        {comentarios.length === 0 ? (
           <p>Este producto aún no tiene opiniones. ¡Sé el primero!</p>
         ) : (
-          producto.comentarios.map((comentario) => (
+          comentarios.map((comentario) => (
             <div className="comentario-item" key={comentario.id}>
               <div className="comentario-header">
                 <span className="comentario-autor">{comentario.autor}</span>
@@ -197,8 +204,18 @@ function DetalleProductoPage() {
           </div>
           <p className="detalle-descripcion-corta">
             {/* Usamos la descripción real */}
-            {producto.descripcion.substring(0, 150)}... 
-            <a href="#detalle-tabs" className="ver-mas-link">(ver más)</a>
+            {producto.descripcion ? (
+              producto.descripcion.length > 150 ? (
+                <>
+                  {producto.descripcion.substring(0, 150)}... 
+                  <a href="#detalle-tabs" className="ver-mas-link">(ver más)</a>
+                </>
+              ) : (
+                producto.descripcion
+              )
+            ) : (
+              'Sin descripción disponible.'
+            )}
           </p>
           <button 
             className="detalle-add-to-cart-button"
@@ -227,14 +244,14 @@ function DetalleProductoPage() {
             className={`detalle-tab-button ${activeTab === 'reviews' ? 'active' : ''}`}
             onClick={() => setActiveTab('reviews')}
           >
-            Opiniones ({producto.comentarios.length})
+            Opiniones ({producto?.comentarios?.length || 0})
           </button>
         </div>
         
         <div className="detalle-tab-content">
-          {activeTab === 'desc' && <DescripcionTab producto={producto} />}
-          {activeTab === 'specs' && <EspecificacionesTab producto={producto} />}
-          {activeTab === 'reviews' && <ComentariosTab producto={producto} />}
+          {activeTab === 'desc' && producto && <DescripcionTab producto={producto} />}
+          {activeTab === 'specs' && producto && <EspecificacionesTab producto={producto} />}
+          {activeTab === 'reviews' && producto && <ComentariosTab producto={producto} />}
         </div>
       </div>
     </main>

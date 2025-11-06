@@ -25,7 +25,25 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
   public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) 
       throws IOException, ServletException {
         
-    logger.error("Unauthorized error: {}", authException.getMessage());
+    String path = request.getServletPath();
+    String method = request.getMethod();
+    
+    logger.error("Unauthorized error en {} {}: {}", method, path, authException.getMessage());
+    
+    // Log adicional para debugging
+    if (path.contains("/payment")) {
+      logger.error("=== ERROR EN PAYMENT ===");
+      logger.error("Path: {}", path);
+      logger.error("Method: {}", method);
+      logger.error("Exception: {}", authException.getClass().getName());
+      logger.error("Message: {}", authException.getMessage());
+      String authHeader = request.getHeader("Authorization");
+      logger.error("Authorization header presente: {}", authHeader != null);
+      if (authHeader != null) {
+        logger.error("Authorization header (primeros 30 chars): {}", 
+            authHeader.substring(0, Math.min(30, authHeader.length())) + "...");
+      }
+    }
 
     // 3. NO uses response.sendError()
     // response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");

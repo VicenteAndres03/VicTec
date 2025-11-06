@@ -18,7 +18,7 @@ public class CarritoItem {
     @JoinColumn(name = "carrito_id", nullable = false)
     private Carrito carrito;
 
-    @ManyToOne(fetch = FetchType.EAGER) // Eager está bien aquí, queremos ver el producto
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 

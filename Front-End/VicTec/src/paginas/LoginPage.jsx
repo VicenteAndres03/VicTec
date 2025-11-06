@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './LoginPage.css';
 
@@ -8,6 +8,7 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const { login } = useAuth();
 
@@ -40,10 +41,29 @@ function LoginPage() {
 
       // 4. Si llegas aquí, SABES que la respuesta es 'ok' y puedes parsear el JSON
       const data = await response.json();
+      
+      console.log('Datos recibidos del login:', data);
 
       // El backend ahora devuelve el usuario y el token
       const { token, ...userData } = data;
+      
+      if (!token) {
+        throw new Error('No se recibió el token del servidor');
+      }
+      
+      console.log('Guardando token y datos de usuario...');
       login(userData, token);
+      
+      // Verificar que se guardó correctamente
+      const savedToken = localStorage.getItem('token');
+      if (!savedToken) {
+        console.error('Error: El token no se guardó en localStorage');
+        throw new Error('Error al guardar la sesión');
+      }
+      
+      console.log('Login exitoso, redirigiendo...');
+      // Navegar a la página principal después del login
+      navigate('/');
 
     } catch (err) {
       setStatus('error');

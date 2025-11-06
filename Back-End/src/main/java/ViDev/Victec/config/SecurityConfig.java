@@ -70,7 +70,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/v1/auth/**").permitAll()
@@ -82,7 +81,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/pedidos/**").authenticated()
                 .requestMatchers("/api/v1/payment/**").authenticated()
                 .anyRequest().authenticated()
-            );
+            )
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
         
         http.authenticationProvider(authenticationProvider(userDetailsService));
 

@@ -21,7 +21,7 @@ public class Comentario {
     private String autor;
     private int rating; // 1-5
     
-    @Lob // Para comentarios largos
+    @Lob 
     @Column(columnDefinition = "TEXT")
     private String texto;
     
@@ -31,7 +31,6 @@ public class Comentario {
 
     public Comentario() {}
     
-    // Constructor de conveniencia que usaste en ProductoService
     public Comentario(String autor, int rating, String texto, String fecha) {
         this.autor = autor;
         this.rating = rating;

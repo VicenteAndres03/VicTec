@@ -1,21 +1,31 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
-  const navigate = useNavigate();
+  const [token, setToken] = useState(() => {
+    try {
+      return localStorage.getItem('token');
+    } catch (e) {
+      return null;
+    }
+  });
 
+  // Cargar el usuario al inicio
   useEffect(() => {
     if (token) {
-      // Aquí, en una aplicación real, deberías decodificar el token
-      // para obtener los datos del usuario y verificar si ha expirado.
-      // Por ahora, simularemos que obtenemos el usuario del localStorage también.
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (e) {
+        console.error('Error al cargar usuario:', e);
+        // Limpiar datos corruptos
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken(null);
       }
     } else {
       setUser(null);
@@ -23,31 +33,43 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const login = (userData, authToken) => {
-    localStorage.setItem('token', authToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setToken(authToken);
-    setUser(userData);
-    navigate('/');
+    try {
+      localStorage.setItem('token', authToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setToken(authToken);
+      setUser(userData);
+    } catch (e) {
+      console.error('Error al guardar datos de login:', e);
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
-    navigate('/');
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+    } catch (e) {
+      console.error('Error al hacer logout:', e);
+    }
   };
 
-  const getAuthHeader = () => {
+  // Usar useCallback para evitar que getAuthHeader cambie en cada render
+  const getAuthHeader = useCallback(() => {
+    if (!token) {
+      return {
+        'Content-Type': 'application/json'
+      };
+    }
     return {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     };
-  };
+  }, [token]);
 
   const value = {
     user,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !!token,
     login,
     logout,
     getAuthHeader

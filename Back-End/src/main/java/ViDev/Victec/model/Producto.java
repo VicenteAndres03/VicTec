@@ -8,6 +8,7 @@ import jakarta.persistence.Lob;
 import java.util.ArrayList; 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,9 +42,11 @@ public class Producto {
 
     // 3. ¡AQUÍ ESTÁ EL ARREGLO!
     // Inicializa las listas para que nunca sean 'null'.
+    @JsonIgnore
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Especificacion> especificaciones = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comentario> comentarios = new ArrayList<>();
 

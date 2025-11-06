@@ -30,8 +30,16 @@ public class PaymentService {
     }
 
     public Preference createPreference(Pedido pedido) throws MPException, MPApiException {
+        if (pedido == null || pedido.getItems() == null || pedido.getItems().isEmpty()) {
+            throw new IllegalArgumentException("El pedido no tiene items");
+        }
+
         List<PreferenceItemRequest> items = new ArrayList<>();
         for (PedidoItem pedidoItem : pedido.getItems()) {
+            if (pedidoItem.getProducto() == null) {
+                throw new IllegalArgumentException("Un item del pedido no tiene producto asociado");
+            }
+            
             PreferenceItemRequest item = PreferenceItemRequest.builder()
                     .id(pedidoItem.getProducto().getId().toString())
                     .title(pedidoItem.getProducto().getNombre())
@@ -40,6 +48,10 @@ public class PaymentService {
                     .currencyId("CLP")
                     .build();
             items.add(item);
+        }
+
+        if (items.isEmpty()) {
+            throw new IllegalArgumentException("No se pudieron crear items para la preferencia");
         }
 
         PreferenceRequest request = PreferenceRequest.builder()

@@ -68,4 +68,24 @@ public class CarritoService {
         carrito.getItems().clear();
         carritoRepository.save(carrito);
     }
+
+    public Carrito updateCantidad(Long usuarioId, Long productoId, int nuevaCantidad) {
+        if (nuevaCantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
+        }
+        
+        Carrito carrito = carritoRepository.findByUsuarioId(usuarioId).orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
+        
+        Optional<CarritoItem> itemOpt = carrito.getItems().stream()
+                .filter(item -> item.getProducto().getId().equals(productoId))
+                .findFirst();
+        
+        if (itemOpt.isPresent()) {
+            CarritoItem item = itemOpt.get();
+            item.setCantidad(nuevaCantidad);
+            return carritoRepository.save(carrito);
+        } else {
+            throw new RuntimeException("Producto no encontrado en el carrito");
+        }
+    }
 }

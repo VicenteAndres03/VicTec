@@ -35,13 +35,25 @@ function CarritoPage() {
           return;
         }
         if (!response.ok) {
-          throw new Error('Error al cargar el carrito');
+          // Intentar leer el mensaje de error del backend
+          let errorMessage = 'Error al cargar el carrito';
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } catch (e) {
+            // Si no se puede parsear como JSON, usar el texto
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          }
+          console.error('Error al cargar carrito:', response.status, errorMessage);
+          throw new Error(errorMessage);
         }
         
         const data = await response.json();
         // El backend devuelve el objeto Carrito, que tiene la propiedad 'items'
         setItems(data.items || []);
       } catch (err) {
+        console.error('Error completo:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -71,10 +83,60 @@ function CarritoPage() {
     }
   };
 
+  // Función para actualizar la cantidad de un item
+  const handleUpdateQuantity = async (productoId, nuevaCantidad) => {
+    if (nuevaCantidad < 1) {
+      // Si la cantidad es menor a 1, eliminar el item
+      handleRemoveItem(productoId);
+      return;
+    }
+    if (nuevaCantidad > 10) {
+      setError('La cantidad máxima es 10');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/v1/carrito/update-cantidad', {
+        method: 'PUT',
+        headers: getAuthHeader(),
+        body: JSON.stringify({
+          productoId: productoId,
+          cantidad: nuevaCantidad
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo actualizar la cantidad');
+      }
+
+      const data = await response.json();
+      // Actualiza el estado local con el carrito actualizado
+      setItems(data.items || []);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // Función para incrementar cantidad
+  const handleIncrement = (item) => {
+    const nuevaCantidad = item.cantidad + 1;
+    handleUpdateQuantity(item.producto.id, nuevaCantidad);
+  };
+
+  // Función para decrementar cantidad
+  const handleDecrement = (item) => {
+    const nuevaCantidad = item.cantidad - 1;
+    handleUpdateQuantity(item.producto.id, nuevaCantidad);
+  };
+
 
   // 7. Cálculos actualizados (el 'item' ahora es un CarritoItem)
   // Nota: item.producto.precio (viene del backend)
-  const subtotal = items.reduce((acc, item) => acc + item.producto.precio * item.cantidad, 0);
+  const subtotal = items.reduce((acc, item) => {
+    if (!item || !item.producto || !item.producto.precio) return acc;
+    return acc + item.producto.precio * item.cantidad;
+  }, 0);
   const envio = subtotal > 0 ? 3500 : 0; // No cobrar envío si el carrito está vacío
   const total = subtotal + envio;
 
@@ -95,35 +157,63 @@ function CarritoPage() {
       
       {/* Columna Izquierda: Lista de Items */}
       <div className="cart-item-list">
-        {items.map(item => (
-          // El 'item' aquí es un CarritoItem de Java
-          // El producto está en 'item.producto'
-          <div className="cart-item" key={item.id}> 
-            <div className="cart-item-image">
-              {/* Usamos la imgUrl del producto */}
-              <img src={item.producto.imgUrl} alt={item.producto.nombre} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+        {items.map(item => {
+          // Validar que el item tenga todas las propiedades necesarias
+          if (!item || !item.producto) return null;
+          
+          return (
+            // El 'item' aquí es un CarritoItem de Java
+            // El producto está en 'item.producto'
+            <div className="cart-item" key={item.id}> 
+              <div className="cart-item-image">
+                {/* Usamos la imgUrl del producto */}
+                <img src={item.producto.imgUrl || ''} alt={item.producto.nombre || 'Producto'} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+              </div>
+              <div className="cart-item-details">
+                <span className="cart-item-brand">{item.producto.marca || ''}</span>
+                <span className="cart-item-name">{item.producto.nombre || 'Producto sin nombre'}</span>
+                {/* 8. Conectamos la función de eliminar al botón */}
+                <button 
+                  className="cart-item-remove"
+                  onClick={() => handleRemoveItem(item.producto.id)}
+                >
+                  Quitar
+                </button>
+              </div>
+              <div className="cart-item-quantity">
+                <div className="quantity-controls">
+                  <button 
+                    className="quantity-btn minus"
+                    onClick={() => handleDecrement(item)}
+                    aria-label="Disminuir cantidad"
+                  >
+                    -
+                  </button>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="10" 
+                    value={item.cantidad || 1} 
+                    readOnly 
+                    className="quantity-input"
+                  />
+                  <button 
+                    className="quantity-btn plus"
+                    onClick={() => handleIncrement(item)}
+                    disabled={item.cantidad >= 10}
+                    aria-label="Aumentar cantidad"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <div className="cart-item-price">
+                {/* El precio total del item */}
+                CLP${((item.producto.precio || 0) * (item.cantidad || 1)).toLocaleString('es-CL')}
+              </div>
             </div>
-            <div className="cart-item-details">
-              <span className="cart-item-brand">{item.producto.marca}</span>
-              <span className="cart-item-name">{item.producto.nombre}</span>
-              {/* 8. Conectamos la función de eliminar al botón */}
-              <button 
-                className="cart-item-remove"
-                onClick={() => handleRemoveItem(item.producto.id)}
-              >
-                Quitar
-              </button>
-            </div>
-            <div className="cart-item-quantity">
-              {/* 9. La cantidad viene de item.cantidad. Usamos readOnly por ahora */}
-              <input type="number" min="1" max="10" value={item.cantidad} readOnly />
-            </div>
-            <div className="cart-item-price">
-              {/* El precio total del item */}
-              CLP$${(item.producto.precio * item.cantidad).toLocaleString('es-CL')}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Columna Derecha: Resumen de Compra */}
@@ -142,9 +232,11 @@ function CarritoPage() {
           <span>Total</span>
           <span>CLP$${total.toLocaleString('es-CL')}</span>
         </div>
-        <Link to="/checkout" className="checkout-button">
+        {items.length > 0 && (
+          <Link to="/checkout" className="checkout-button">
             Proceder al Pago
-        </Link>
+          </Link>
+        )}
       </div>
     </div>
   );

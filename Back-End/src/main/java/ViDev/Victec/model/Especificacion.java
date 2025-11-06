@@ -18,17 +18,16 @@ public class Especificacion {
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-    @Column(name = "spec_key") // 'key' puede ser una palabra reservada
+    @Column(name = "spec_key")
     private String key;
     
-    @Column(name = "spec_value") // 'value' también
+    @Column(name = "spec_value")
     private String value;
 
     // --- Constructores, Getters y Setters ---
 
     public Especificacion() {}
 
-    // Constructor de conveniencia que usaste en ProductoService
     public Especificacion(String key, String value) {
         this.key = key;
         this.value = value;
