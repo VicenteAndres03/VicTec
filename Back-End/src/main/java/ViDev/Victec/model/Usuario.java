@@ -1,5 +1,7 @@
 package ViDev.Victec.model;
 
+// 1. IMPORTA JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,9 +27,13 @@ public class Usuario {
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
 
+    // 2. AÑADE @JsonIgnore AQUÍ
+    @JsonIgnore
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Carrito carrito;
 
+    // 3. AÑADE @JsonIgnore AQUÍ (para prevenir bucles con Direcciones)
+    @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Direccion> direcciones = new HashSet<>();
 

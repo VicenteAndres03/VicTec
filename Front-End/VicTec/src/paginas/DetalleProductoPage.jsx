@@ -1,58 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 1. Importar useEffect
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // 2. Importar useAuth
 import './DetalleProductoPage.css'; 
 
-// --- SIMULACIÓN DE BASE DE DATOS (Sin cambios) ---
-const mockProductos = [
-  {
-    id: 1,
-    nombre: 'Auriculares Pro-Gen',
-    marca: 'VicTec',
-    precio: 39990,
-    precioAntiguo: 59990,
-    enOferta: true,
-    imgUrl: 'https://i.imgur.com/8Q1mP0B.png', 
-    sku: 'VT-AUD-PRO-001',
-    stock: 25,
-    categoria: 'Audio',
-    descripcion: 'Sumérgete en el sonido con los Auriculares Pro-Gen. Cancelación de ruido activa, 40 horas de batería y un diseño ergonómico para tu día a día.',
-    especificaciones: [
-      { key: 'Conexión', value: 'Bluetooth 5.2' },
-      { key: 'Batería', value: '40 horas (con ANC apagado)' },
-      { key: 'Cancelación de Ruido', value: 'Activa (ANC) Híbrida' },
-      { key: 'Peso', value: '220g' },
-    ],
-    comentarios: [
-      { id: 1, autor: 'Carla M.', rating: 5, texto: '¡Me encantaron! La cancelación de ruido es increíble para el precio. Muy cómodos.', fecha: 'hace 2 días' },
-      { id: 2, autor: 'Felipe González', rating: 4, texto: 'Buenos audífonos, el material se siente de calidad y la batería dura muchísimo.', fecha: 'hace 1 semana' },
-    ]
-  },
-  {
-    id: 2,
-    nombre: 'Smartwatch X5',
-    marca: 'VicTec',
-    precio: 179990,
-    precioAntiguo: null,
-    enOferta: false,
-    imgUrl: 'https://i.imgur.com/7H2j3bE.png',
-    sku: 'VT-SW-X5-002',
-    stock: 10,
-    categoria: 'Smartwatches',
-    descripcion: 'El Smartwatch X5 es tu compañero de salud. Mide tu ritmo cardíaco, oxígeno en sangre, y te mantiene conectado con notificaciones inteligentes.',
-    especificaciones: [
-      { key: 'Pantalla', value: '1.8" AMOLED' },
-      { key: 'Resistencia al Agua', value: '5 ATM (Hasta 50m)' },
-      { key: 'Sensores', value: 'Ritmo Cardíaco, SpO2, GPS' },
-      { key: 'Material', value: 'Caja de aleación de aluminio' },
-    ],
-    comentarios: [
-      { id: 3, autor: 'Juan Pablo', rating: 5, texto: 'Excelente reloj, la pantalla se ve muy nítida y el GPS es preciso. 10/10.', fecha: 'hace 5 días' },
-    ]
-  },
-];
-// ---------------------------------
+// 3. QUITAR toda la variable 'mockProductos'
 
-// Helper para renderizar estrellas (Sin cambios)
+// --- Helper para renderizar estrellas (Sin cambios) ---
 function renderRating(rating) {
   const stars = [];
   for (let i = 0; i < 5; i++) {
@@ -65,7 +18,9 @@ function renderRating(rating) {
   return stars;
 }
 
-// Sub-componentes para Pestañas (Sin cambios)
+// --- Sub-componentes para Pestañas (Sin cambios) ---
+// (Estos ya leen 'producto.descripcion', 'producto.especificaciones', etc.
+// lo cual coincide con tu API, así que no necesitan cambios)
 function DescripcionTab({ producto }) {
   return (
     <div className="tab-content-descripcion">
@@ -78,8 +33,9 @@ function EspecificacionesTab({ producto }) {
     <div className="tab-content-especificaciones">
       <h4>Especificaciones Técnicas</h4>
       <ul className="detalle-especificaciones-lista">
+        {/* Tu modelo Especificacion.java tiene 'key' y 'value', está perfecto */}
         {producto.especificaciones.map((spec) => (
-          <li key={spec.key}>
+          <li key={spec.id}>
             <strong>{spec.key}:</strong> {spec.value}
           </li>
         ))}
@@ -115,22 +71,90 @@ function ComentariosTab({ producto }) {
 
 
 function DetalleProductoPage() {
-  const { id } = useParams();
-  const producto = mockProductos.find(p => p.id == id);
+  const { id } = useParams(); // Obtiene el '17' de la URL
   const navigate = useNavigate();
+  const { getAuthHeader, isAuthenticated } = useAuth(); // 4. Obtener auth
+
+  // 5. Estados para los datos reales
+  const [producto, setProducto] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('desc');
 
-  const handleAddToCart = () => {
-    console.log("Añadido al carrito:", producto.nombre);
-    navigate('/carrito');
+  // 6. useEffect para cargar el producto real desde la API
+  useEffect(() => {
+    const fetchProducto = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // Llama a tu API pública para obtener un producto
+        const response = await fetch(`/api/v1/productos/${id}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Producto no encontrado');
+          }
+          throw new Error('Error al cargar el producto');
+        }
+        
+        const data = await response.json();
+        setProducto(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducto();
+  }, [id]); // Se ejecuta cada vez que el ID de la URL cambia
+
+  // 7. ¡Función REAL para añadir al carrito!
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      // Si no está logueado, lo mandamos a la página de login
+      navigate('/login');
+      return;
+    }
+
+    try {
+      // Llama a tu CarritoController
+      const response = await fetch('/api/v1/carrito/add', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify({
+          productoId: producto.id,
+          cantidad: 1 // Añadimos 1 por defecto
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al añadir al carrito');
+      }
+
+      // ¡Éxito! Lo mandamos al carrito
+      navigate('/carrito');
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
-  if (!producto) {
-    // ... (Sección de error sin cambios)
+  // 8. Vistas de Carga y Error
+  if (loading) {
+    return (
+      <main className="detalle-container">
+        <p>Cargando producto...</p>
+      </main>
+    );
+  }
+
+  if (error || !producto) {
     return (
       <main className="detalle-container">
         <div className="detalle-error">
-          <h1>Producto no encontrado</h1>
+          <h1>{error || 'Producto no encontrado'}</h1>
           <p>El producto que buscas no existe o fue movido.</p>
           <Link to="/productos" className="detalle-boton-volver">
             Volver a Productos
@@ -140,24 +164,20 @@ function DetalleProductoPage() {
     );
   }
 
+  // 9. Vista del producto (tu JSX original, pero ahora con datos reales)
   return (
     <main className="detalle-container">
 
-      {/* --- 1. BOTÓN DE VOLVER AÑADIDO AQUÍ --- */}
       <Link to="/productos" className="detalle-back-link">
         ← Volver a Productos
       </Link>
 
-      {/* --- SECCIÓN SUPERIOR (Layout de 2 columnas) --- */}
       <div className="detalle-layout">
-
-        {/* --- Columna de Imagen --- */}
         <div className="detalle-imagen">
           <img src={producto.imgUrl} alt={producto.nombre} />
           {producto.enOferta && <span className="detalle-sale-tag">Sale</span>}
         </div>
 
-        {/* --- Columna de Información --- */}
         <div className="detalle-info">
           <span className="detalle-marca">{producto.marca}</span>
           <div className="detalle-meta-info">
@@ -169,13 +189,14 @@ function DetalleProductoPage() {
             <span className="detalle-precio-actual">
               CLP${producto.precio.toLocaleString('es-CL')}
             </span>
-            {producto.enOferta && (
+            {producto.enOferta && producto.precioAntiguo && (
               <span className="detalle-precio-antiguo">
                 CLP${producto.precioAntiguo.toLocaleString('es-CL')}
               </span>
             )}
           </div>
           <p className="detalle-descripcion-corta">
+            {/* Usamos la descripción real */}
             {producto.descripcion.substring(0, 150)}... 
             <a href="#detalle-tabs" className="ver-mas-link">(ver más)</a>
           </p>
@@ -188,9 +209,7 @@ function DetalleProductoPage() {
         </div>
       </div>
 
-      {/* --- SECCIÓN INFERIOR (Pestañas) --- */}
       <div id="detalle-tabs" className="detalle-tabs-container">
-        {/* Navegación de Pestañas */}
         <div className="detalle-tabs">
           <button 
             className={`detalle-tab-button ${activeTab === 'desc' ? 'active' : ''}`}
@@ -211,7 +230,7 @@ function DetalleProductoPage() {
             Opiniones ({producto.comentarios.length})
           </button>
         </div>
-        {/* Contenido de las Pestañas */}
+        
         <div className="detalle-tab-content">
           {activeTab === 'desc' && <DescripcionTab producto={producto} />}
           {activeTab === 'specs' && <EspecificacionesTab producto={producto} />}
