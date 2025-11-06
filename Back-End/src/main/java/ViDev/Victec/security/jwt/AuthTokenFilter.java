@@ -81,15 +81,20 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
+  // --- INICIO DE LA MODIFICACIÓN ---
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
     String method = request.getMethod();
-    // No aplicar el filtro a rutas públicas
-    return path.startsWith("/api/v1/auth/") || 
+    
+    // En lugar de ignorar todo /auth/, solo ignoramos login y register.
+    // Esto fuerza al filtro a EJECUTARSE en /auth/change-password.
+    return path.equals("/api/v1/auth/login") ||
+           path.equals("/api/v1/auth/register") ||
            (path.startsWith("/api/v1/productos") && "GET".equalsIgnoreCase(method)) ||
            path.startsWith("/api/v1/soporte/");
   }
+  // --- FIN DE LA MODIFICACIÓN ---
 
   private String parseJwt(HttpServletRequest request) {
     String headerAuth = request.getHeader("Authorization");

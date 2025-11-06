@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-// 1. Importa Link y useNavigate
+// 1. Importa Link, useNavigate, y los hooks de Google y Auth
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../context/AuthContext';
 import './RegisterPage.css';
 
 function RegisterPage() {
-  const [nombre, setNombre] = useState(''); // 2. Cambiado de 'name' a 'nombre'
+  const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -12,10 +14,11 @@ function RegisterPage() {
   const [status, setStatus] = useState('idle'); // idle, submitting, error, success
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 3. Inicializa useNavigate para redirigir
+  // 2. Inicializa useNavigate y tu hook de Auth
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  // 4. REEMPLAZA TU handleSubmit POR ESTE:
+  // --- Handler para el formulario de registro manual ---
   const handleSubmit = async (event) => {
     event.preventDefault();
     
@@ -34,20 +37,17 @@ function RegisterPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        // 5. Asegúrate de que los nombres coincidan con tu modelo Usuario.java (nombre, email, password)
         body: JSON.stringify({ nombre, email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // 6. El backend envía { "error": "email already in use" }
         throw new Error(data.error || 'Error al registrar la cuenta.');
       }
 
       // ¡ÉXITO!
       setStatus('success');
-      // 7. Redirige al login después de 2 segundos
       setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -58,6 +58,50 @@ function RegisterPage() {
     }
   };
 
+  // --- 3. Handler para el ÉXITO de Google Login ---
+  const handleGoogleSuccess = async (credentialResponse) => {
+    console.log("Token de Google recibido:", credentialResponse.credential);
+    setStatus('submitting');
+    setErrorMessage('');
+    
+    try {
+      // 4. Llamamos al NUEVO endpoint del backend que discutimos
+      const response = await fetch('/api/v1/auth/google-login', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // Enviamos el token de Google al backend para que lo verifique
+        body: JSON.stringify({ token: credentialResponse.credential }) 
+      });
+      
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error en el inicio de sesión con Google');
+      }
+      
+      // 5. El backend nos devuelve NUESTRO token (VicTec) y los datos del usuario
+      const { token, ...userData } = data;
+      
+      // Usamos la misma función 'login' de nuestro AuthContext
+      login(userData, token); 
+      
+      setStatus('success');
+      navigate('/'); // Lo enviamos al inicio
+      
+    } catch (err) {
+      setStatus('error');
+      setErrorMessage(err.message);
+    }
+  };
+
+  // --- 6. Handler para el ERROR de Google Login ---
+  const handleGoogleError = () => {
+    console.log('Login con Google fallido');
+    setStatus('error');
+    setErrorMessage('El inicio de sesión con Google falló. Inténtalo de nuevo.');
+  };
+
+
   return (
     <main className="register-container">
       <div className="register-box">
@@ -66,26 +110,25 @@ function RegisterPage() {
           <p className="register-subtitle">Únete a VicTec</p>
         </div>
 
+        {/* Mensajes de estado (se aplican a ambos métodos) */}
+        {status === 'error' && (
+          <p className="register-error-message">
+            {errorMessage}
+          </p>
+        )}
+        {status === 'success' && (
+          <p className="register-success-message">
+            ¡Cuenta creada! Redirigiendo al login...
+          </p>
+        )}
+
+        {/* --- Formulario de Registro Manual --- */}
         <form className="register-form" onSubmit={handleSubmit}>
           
-          {/* 8. Mensajes de estado dinámicos */}
-          {status === 'error' && (
-            <p className="register-error-message">
-              {errorMessage}
-            </p>
-          )}
-          {status === 'success' && (
-            <p className="register-success-message"> {/* (Añade este estilo en RegisterPage.css si quieres) */}
-              ¡Cuenta creada! Redirigiendo al login...
-            </p>
-          )}
-
           <div className="form-group">
             <label htmlFor="name">Nombre Completo</label>
             <input 
-              type="text" 
-              id="name" 
-              required 
+              type="text" id="name" required 
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               disabled={status === 'submitting' || status === 'success'}
@@ -95,9 +138,7 @@ function RegisterPage() {
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input 
-              type="email" 
-              id="email" 
-              required 
+              type="email" id="email" required 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={status === 'submitting' || status === 'success'}
@@ -107,9 +148,7 @@ function RegisterPage() {
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
             <input 
-              type="password" 
-              id="password" 
-              required 
+              type="password" id="password" required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={status === 'submitting' || status === 'success'}
@@ -119,9 +158,7 @@ function RegisterPage() {
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirmar Contraseña</label>
             <input 
-              type="password" 
-              id="confirmPassword" 
-              required 
+              type="password" id="confirmPassword" required 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={status === 'submitting' || status === 'success'}
@@ -133,17 +170,31 @@ function RegisterPage() {
             className="register-button" 
             disabled={status === 'submitting' || status === 'success'}
           >
-            {status === 'submitting' ? 'Registrando...' : 'Crear Cuenta'}
+            {status === 'submitting' ? 'Procesando...' : 'Crear Cuenta'}
           </button>
-
-          <p className="login-link-text">
-            ¿Ya tienes una cuenta?{' '}
-            <Link to="/login" className="login-link">
-              Inicia sesión aquí
-            </Link>
-          </p>
-
         </form>
+        
+        {/* --- 7. Divisor y Botón de Google --- */}
+        <div className="google-divider">
+          <span>O</span>
+        </div>
+        
+        <div className="google-login-container">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            useOneTap // Intenta loguear automáticamente si ya tiene sesión de Google
+          />
+        </div>
+        {/* --- Fin de la sección de Google --- */}
+        
+        <p className="login-link-text">
+          ¿Ya tienes una cuenta?{' '}
+          <Link to="/login" className="login-link">
+            Inicia sesión aquí
+          </Link>
+        </p>
+
       </div>
     </main>
   );
