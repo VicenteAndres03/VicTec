@@ -20,20 +20,25 @@ public class UserDetailsImpl implements UserDetails {
 
   private String email;
 
+  private String nombre; // <-- CAMBIO 1: Campo añadido
+
   @JsonIgnore
   private String password;
 
   private Collection<? extends GrantedAuthority> authorities;
 
-  public UserDetailsImpl(Long id, String username, String email, String password,
+  // CAMBIO 2: Constructor actualizado
+  public UserDetailsImpl(Long id, String username, String email, String nombre, String password,
       Collection<? extends GrantedAuthority> authorities) {
     this.id = id;
     this.username = username;
     this.email = email;
+    this.nombre = nombre; // <-- Asignación añadida
     this.password = password;
     this.authorities = authorities;
   }
 
+  // CAMBIO 3: Método build actualizado
   public static UserDetailsImpl build(Usuario user) {
     List<GrantedAuthority> authorities = user.getRoles().stream()
         .map(SimpleGrantedAuthority::new)
@@ -43,6 +48,7 @@ public class UserDetailsImpl implements UserDetails {
         user.getId(),
         user.getEmail(), // Usamos email como el username para Spring Security
         user.getEmail(),
+        user.getNombre(), // <-- Se pasa el nombre desde el Usuario
         user.getPassword(),
         authorities);
   }
@@ -58,6 +64,11 @@ public class UserDetailsImpl implements UserDetails {
 
   public String getEmail() {
     return email;
+  }
+
+  // CAMBIO 4: Getter añadido
+  public String getNombre() {
+    return nombre;
   }
 
   @Override

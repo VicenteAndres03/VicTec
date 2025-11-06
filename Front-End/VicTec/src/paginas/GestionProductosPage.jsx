@@ -1,26 +1,8 @@
-import React, { useState } from 'react';
-import './GestionProductosPage.css'; // Crearemos este CSS
+import React, { useState, useEffect } from 'react'; // 1. Importar useEffect
+import { useAuth } from '../context/AuthContext'; // 2. Importar useAuth
+import './GestionProductosPage.css';
 
-// --- Datos de simulación ---
-const mockProductos = [
-  {
-    id: 1,
-    nombre: 'Auriculares Pro-Gen',
-    marca: 'VicTec',
-    precio: 39990, // Precio en CLP
-    stock: 50,
-    imgUrl: 'https://i.imgur.com/8Q1mP0B.png', // URL de ejemplo
-  },
-  {
-    id: 2,
-    nombre: 'Smartwatch X5',
-    marca: 'VicTec',
-    precio: 179990, // Precio en CLP
-    stock: 25,
-    imgUrl: 'https://i.imgur.com/7H2j3bE.png', // URL de ejemplo
-  },
-];
-// -------------------------
+// 3. Quitar el mockProductos
 
 // --- Estado inicial para el formulario ---
 const formularioVacio = {
@@ -30,43 +12,88 @@ const formularioVacio = {
   precio: '',
   stock: '',
   imgUrl: '',
+  // 4. Añadir campos que faltan en tu modelo Producto.java
+  precioAntiguo: null,
+  enOferta: false,
+  sku: '',
+  categoria: '',
+  descripcion: ''
 };
 
 function GestionProductosPage() {
-  const [productos, setProductos] = useState(mockProductos);
-  const [modoForm, setModoForm] = useState('oculto'); // 'oculto', 'nuevo', 'editar'
+  const [productos, setProductos] = useState([]); // 5. Empezar con array vacío
+  const [modoForm, setModoForm] = useState('oculto'); 
   const [productoActual, setProductoActual] = useState(formularioVacio);
+  
+  // 6. Estados de carga y error
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [formError, setFormError] = useState(null);
+
+  // 7. Obtener el header de autenticación
+  const { getAuthHeader } = useAuth();
+
+  // 8. Función para cargar productos desde la API
+  const loadProductos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // El GET es público, no necesita auth
+      const response = await fetch('/api/v1/productos'); 
+      if (!response.ok) throw new Error('No se pudieron cargar los productos');
+      const data = await response.json();
+      setProductos(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 9. Cargar productos la primera vez
+  useEffect(() => {
+    loadProductos();
+  }, []); // El array vacío asegura que se ejecute solo una vez
 
   // --- Manejadores del Formulario ---
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setProductoActual((prev) => ({
       ...prev,
-      [name]: value,
+      // 10. Manejar inputs de tipo 'checkbox'
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  // 11. REEMPLAZAR handleSubmit
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Lógica (simulada) para guardar
-    if (modoForm === 'nuevo') {
-      // Añadir nuevo producto (simulamos un ID)
-      const nuevoProducto = { ...productoActual, id: Date.now() };
-      setProductos((prev) => [nuevoProducto, ...prev]);
-      console.log('Añadiendo producto:', nuevoProducto);
-      
-    } else if (modoForm === 'editar') {
-      // Actualizar producto existente
-      setProductos((prev) =>
-        prev.map((p) => (p.id === productoActual.id ? productoActual : p))
-      );
-      console.log('Actualizando producto:', productoActual);
-    }
+    setFormError(null);
 
-    // Resetear formulario
-    setModoForm('oculto');
-    setProductoActual(formularioVacio);
+    const esNuevo = modoForm === 'nuevo';
+    const url = esNuevo ? '/api/v1/productos' : `/api/v1/productos/${productoActual.id}`;
+    const method = esNuevo ? 'POST' : 'PUT';
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: getAuthHeader(), // <-- 12. ¡Usar el token de Admin!
+        body: JSON.stringify(productoActual),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || 'Error al guardar el producto');
+      }
+
+      // Éxito
+      setModoForm('oculto');
+      setProductoActual(formularioVacio);
+      await loadProductos(); // 13. Recargar la lista de productos
+
+    } catch (err) {
+      setFormError(err.message);
+    }
   };
 
   // --- Manejadores de Botones ---
@@ -83,13 +110,28 @@ function GestionProductosPage() {
   const handleCancelar = () => {
     setModoForm('oculto');
     setProductoActual(formularioVacio);
+    setFormError(null);
   };
 
-  const handleEliminar = (id) => {
-    // Simulación de confirmación
+  // 14. REEMPLAZAR handleEliminar
+  const handleEliminar = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-      setProductos((prev) => prev.filter((p) => p.id !== id));
-      console.log('Eliminando producto ID:', id);
+      try {
+        const response = await fetch(`/api/v1/productos/${id}`, {
+          method: 'DELETE',
+          headers: getAuthHeader(), // <-- 15. ¡Usar el token de Admin!
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al eliminar el producto');
+        }
+        
+        // 16. Recargar la lista
+        await loadProductos();
+
+      } catch (err) {
+        setError(err.message); // Mostrar error en la tabla
+      }
     }
   };
 
@@ -99,53 +141,68 @@ function GestionProductosPage() {
       <div className="admin-form-container">
         <h2>{modoForm === 'nuevo' ? 'Añadir Nuevo Producto' : 'Editar Producto'}</h2>
         
+        {formError && <p className="register-error-message">{formError}</p>}
+
+        {/* 17. Añadimos más campos al formulario */}
         <form onSubmit={handleSubmit}>
           {/* Fila 1: Nombre y Marca */}
           <div className="form-row">
             <div className="form-group-admin">
               <label htmlFor="nombre">Nombre del Producto</label>
-              <input
-                type="text" id="nombre" name="nombre"
-                value={productoActual.nombre} onChange={handleInputChange} required
-              />
+              <input type="text" id="nombre" name="nombre" value={productoActual.nombre} onChange={handleInputChange} required />
             </div>
             <div className="form-group-admin">
               <label htmlFor="marca">Marca</label>
-              <input
-                type="text" id="marca" name="marca"
-                value={productoActual.marca} onChange={handleInputChange}
-              />
+              <input type="text" id="marca" name="marca" value={productoActual.marca} onChange={handleInputChange} />
             </div>
           </div>
           
           {/* Fila 2: Precio y Stock */}
           <div className="form-row">
             <div className="form-group-admin">
-              {/* --- CAMBIO AQUÍ (Label y step) --- */}
               <label htmlFor="precio">Precio (CLP$)</label>
-              <input
-                type="number" id="precio" name="precio" step="1" min="0"
-                placeholder="19990"
-                value={productoActual.precio} onChange={handleInputChange} required
-              />
+              <input type="number" id="precio" name="precio" step="1" min="0" placeholder="19990" value={productoActual.precio} onChange={handleInputChange} required />
             </div>
             <div className="form-group-admin">
               <label htmlFor="stock">Stock</label>
-              <input
-                type="number" id="stock" name="stock" min="0"
-                value={productoActual.stock} onChange={handleInputChange} required
-              />
+              <input type="number" id="stock" name="stock" min="0" value={productoActual.stock} onChange={handleInputChange} required />
             </div>
           </div>
 
-          {/* Fila 3: URL de Imagen */}
-          <div className="form-group-admin">
-            <label htmlFor="imgUrl">URL de la Imagen</label>
-            <input
-              type="url" id="imgUrl" name="imgUrl"
-              placeholder="https://ejemplo.com/imagen.png"
-              value={productoActual.imgUrl} onChange={handleInputChange} required
-            />
+          {/* Fila 3: Precio Antiguo y SKU */}
+          <div className="form-row">
+            <div className="form-group-admin">
+              <label htmlFor="precioAntiguo">Precio Antiguo (Opcional)</label>
+              <input type="number" id="precioAntiguo" name="precioAntiguo" step="1" min="0" placeholder="29990" value={productoActual.precioAntiguo || ''} onChange={handleInputChange} />
+            </div>
+             <div className="form-group-admin">
+              <label htmlFor="sku">SKU</label>
+              <input type="text" id="sku" name="sku" value={productoActual.sku} onChange={handleInputChange} />
+            </div>
+          </div>
+
+          {/* Fila 4: URL de Imagen y Categoría */}
+          <div className="form-row">
+            <div className="form-group-admin">
+              <label htmlFor="imgUrl">URL de la Imagen</label>
+              <input type="url" id="imgUrl" name="imgUrl" placeholder="https://ejemplo.com/imagen.png" value={productoActual.imgUrl} onChange={handleInputChange} required />
+            </div>
+             <div className="form-group-admin">
+              <label htmlFor="categoria">Categoría</label>
+              <input type="text" id="categoria" name="categoria" value={productoActual.categoria} onChange={handleInputChange} />
+            </div>
+          </div>
+
+          {/* Fila 5: Descripción */}
+           <div className="form-group-admin">
+            <label htmlFor="descripcion">Descripción</label>
+            <textarea id="descripcion" name="descripcion" value={productoActual.descripcion} onChange={handleInputChange} style={{minHeight: '80px'}} />
+          </div>
+
+          {/* Fila 6: Checkbox de Oferta */}
+          <div className="form-group-admin" style={{flexDirection: 'row', alignItems: 'center', gap: '10px'}}>
+            <input type="checkbox" id="enOferta" name="enOferta" checked={productoActual.enOferta} onChange={handleInputChange} />
+            <label htmlFor="enOferta" style={{marginBottom: 0}}>¿Está en oferta?</label>
           </div>
           
           {/* Vista previa de la imagen */}
@@ -156,7 +213,7 @@ function GestionProductosPage() {
             </div>
           )}
 
-          {/* Fila 4: Botones */}
+          {/* Fila 7: Botones */}
           <div className="form-buttons">
             <button type="button" className="admin-button button-cancel" onClick={handleCancelar}>
               Cancelar
@@ -184,49 +241,54 @@ function GestionProductosPage() {
         </button>
       </div>
 
+      {/* 18. Lógica de Carga y Error */}
+      {error && <p className="register-error-message">{error}</p>}
+      {loading && <p>Cargando productos...</p>}
+
       {/* 3. Tabla de Productos */}
-      <div className="admin-table-container">
-        <table className="admin-product-table">
-          <thead>
-            <tr>
-              <th>Imagen</th>
-              <th>Nombre</th>
-              <th>Marca</th>
-              <th>Precio</th>
-              <th>Stock</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {productos.map((prod) => (
-              <tr key={prod.id}>
-                <td className="cell-image">
-                  <img src={prod.imgUrl} alt={prod.nombre} />
-                </td>
-                <td className="cell-nombre">{prod.nombre}</td>
-                <td>{prod.marca}</td>
-                {/* --- CAMBIO AQUÍ (Símbolo de moneda) --- */}
-                <td>CLP${prod.precio}</td>
-                <td>{prod.stock}</td>
-                <td className="cell-actions">
-                  <button 
-                    className="admin-button button-edit"
-                    onClick={() => handleAbrirFormEditar(prod)}
-                  >
-                    Editar
-                  </button>
-                  <button 
-                    className="admin-button button-delete"
-                    onClick={() => handleEliminar(prod.id)}
-                  >
-                    Eliminar
-                  </button>
-                </td>
+      {!loading && !error && (
+        <div className="admin-table-container">
+          <table className="admin-product-table">
+            <thead>
+              <tr>
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Marca</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {productos.map((prod) => (
+                <tr key={prod.id}>
+                  <td className="cell-image">
+                    <img src={prod.imgUrl} alt={prod.nombre} />
+                  </td>
+                  <td className="cell-nombre">{prod.nombre}</td>
+                  <td>{prod.marca}</td>
+                  <td>CLP${prod.precio.toLocaleString('es-CL')}</td>
+                  <td>{prod.stock}</td>
+                  <td className="cell-actions">
+                    <button 
+                      className="admin-button button-edit"
+                      onClick={() => handleAbrirFormEditar(prod)}
+                    >
+                      Editar
+                    </button>
+                    <button 
+                      className="admin-button button-delete"
+                      onClick={() => handleEliminar(prod.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </main>
   );
 }

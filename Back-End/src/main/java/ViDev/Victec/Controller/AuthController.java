@@ -70,7 +70,9 @@ public class AuthController {
             "token", token,
             "id", userDetails.getId(),
             "email", userDetails.getEmail(),
+            "nombre", userDetails.getNombre(), // <-- AÑADE ESTA LÍNEA
             "roles", roles
         ));
+
     }
 }

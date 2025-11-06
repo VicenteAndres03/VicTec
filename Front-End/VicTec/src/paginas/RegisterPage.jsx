@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import './RegisterPage.css'; // <-- Usará el CSS que ya tienes
+// 1. Importa Link y useNavigate
+import { Link, useNavigate } from 'react-router-dom';
+import './RegisterPage.css';
 
 function RegisterPage() {
-  const [name, setName] = useState('');
+  const [nombre, setNombre] = useState(''); // 2. Cambiado de 'name' a 'nombre'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  const [status, setStatus] = useState('idle'); // idle, submitting, error
+  const [status, setStatus] = useState('idle'); // idle, submitting, error, success
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (event) => {
+  // 3. Inicializa useNavigate para redirigir
+  const navigate = useNavigate();
+
+  // 4. REEMPLAZA TU handleSubmit POR ESTE:
+  const handleSubmit = async (event) => {
     event.preventDefault();
     
-    // --- Validación simple ---
     if (password !== confirmPassword) {
       setErrorMessage('Las contraseñas no coinciden.');
       setStatus('error');
@@ -23,15 +27,35 @@ function RegisterPage() {
 
     setStatus('submitting');
     setErrorMessage('');
-    console.log('Registrando con:', { name, email, password });
-    
-    // (Simulación de registro)
-    setTimeout(() => {
-      // Aquí iría la lógica de registro real
-      // Por ahora, solo simulamos un error para probar
-      setErrorMessage('El email ya está en uso (simulación).');
+
+    try {
+      const response = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // 5. Asegúrate de que los nombres coincidan con tu modelo Usuario.java (nombre, email, password)
+        body: JSON.stringify({ nombre, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // 6. El backend envía { "error": "email already in use" }
+        throw new Error(data.error || 'Error al registrar la cuenta.');
+      }
+
+      // ¡ÉXITO!
+      setStatus('success');
+      // 7. Redirige al login después de 2 segundos
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+
+    } catch (err) {
       setStatus('error');
-    }, 1500);
+      setErrorMessage(err.message);
+    }
   };
 
   return (
@@ -44,9 +68,15 @@ function RegisterPage() {
 
         <form className="register-form" onSubmit={handleSubmit}>
           
+          {/* 8. Mensajes de estado dinámicos */}
           {status === 'error' && (
             <p className="register-error-message">
               {errorMessage}
+            </p>
+          )}
+          {status === 'success' && (
+            <p className="register-success-message"> {/* (Añade este estilo en RegisterPage.css si quieres) */}
+              ¡Cuenta creada! Redirigiendo al login...
             </p>
           )}
 
@@ -56,8 +86,9 @@ function RegisterPage() {
               type="text" 
               id="name" 
               required 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              disabled={status === 'submitting' || status === 'success'}
             />
           </div>
 
@@ -69,6 +100,7 @@ function RegisterPage() {
               required 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={status === 'submitting' || status === 'success'}
             />
           </div>
           
@@ -80,6 +112,7 @@ function RegisterPage() {
               required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={status === 'submitting' || status === 'success'}
             />
           </div>
 
@@ -91,13 +124,14 @@ function RegisterPage() {
               required 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={status === 'submitting' || status === 'success'}
             />
           </div>
           
           <button 
             type="submit" 
             className="register-button" 
-            disabled={status === 'submitting'}
+            disabled={status === 'submitting' || status === 'success'}
           >
             {status === 'submitting' ? 'Registrando...' : 'Crear Cuenta'}
           </button>

@@ -43,7 +43,7 @@ function Header() {
               <span className="icon-link user-icon-trigger" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
                 {/* 3. Muestra el ícono o las iniciales del usuario */}
                 {isAuthenticated ? (
-                  <div className="user-initials">{user.nombre.charAt(0)}</div>
+                  <div className="user-initials">{ (user.nombre && user.nombre.charAt(0)) || (user.email && user.email.charAt(0)) || 'U' }</div>
                 ) : (
                   '👤'
                 )}

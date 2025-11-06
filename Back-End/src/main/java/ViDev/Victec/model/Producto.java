@@ -1,7 +1,13 @@
 package ViDev.Victec.model;
 
-// 1. Importa las anotaciones de JPA
+// 1. IMPORTA ESTAS DOS CLASES
+import jakarta.persistence.Column;
+import jakarta.persistence.Lob;
+
+// 2. IMPORTA ArrayList
+import java.util.ArrayList; 
 import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,12 +16,11 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Table;
 
-// 2. Anota la clase como una Entidad y dale un nombre de tabla
+
 @Entity
 @Table(name = "productos")
 public class Producto {
 
-    // 3. Define la llave primaria (ID)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,19 +34,20 @@ public class Producto {
     private String sku;
     private int stock;
     private String categoria;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    // 4. Define la relación: Un Producto tiene Muchas Especificaciones
+    // 3. ¡AQUÍ ESTÁ EL ARREGLO!
+    // Inicializa las listas para que nunca sean 'null'.
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Especificacion> especificaciones;
+    private List<Especificacion> especificaciones = new ArrayList<>();
 
-    // 5. Define la relación: Un Producto tiene Muchos Comentarios
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comentario> comentarios;
+    private List<Comentario> comentarios = new ArrayList<>();
 
     // --- Getters y Setters (Sin cambios) ---
-    // (Asegúrate de tener getters y setters para TODOS los campos, 
-    // incluyendo 'id', 'especificaciones' y 'comentarios')
 
     public Long getId() {
         return id;

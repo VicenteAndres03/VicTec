@@ -1,59 +1,72 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // 1. Importa useNavigate
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // 1. Importar useAuth
 import './AdminLoginPage.css';
 
 function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('idle'); // idle, submitting, error, success
+  const [status, setStatus] = useState('idle'); 
   const [errorMessage, setErrorMessage] = useState('');
   
-  const navigate = useNavigate(); // 2. Inicializa el hook
+  const navigate = useNavigate();
+  const { login } = useAuth(); // 2. Obtener la función de login del contexto
 
-  const handleSubmit = (event) => {
+  // 3. Convertir handleSubmit en una función async
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus('submitting');
     setErrorMessage('');
 
-    // Validación de Email
-    if (email.toLowerCase() !== 'vixdeev@gmail.com') {
-      setErrorMessage('Acceso denegado. Correo de administrador incorrecto.');
-      setStatus('error');
-      return;
-    }
+    try {
+      // 4. Llamar a la API de login real
+      const response = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Validación de Contraseña
-    if (password !== '6672960v') {
-      setErrorMessage('Contraseña de administrador incorrecta.');
-      setStatus('error');
-      return;
-    }
+      const data = await response.json();
 
-    // --- 3. Éxito y Redirección ---
-    console.log('¡Inicio de sesión de admin exitoso!');
-    setStatus('success');
-    
-    // Esperamos 1.5 segundos para que el admin vea el mensaje
-    // y luego lo redirigimos al panel de reportes.
-    setTimeout(() => {
-      navigate('/admin/reportes'); // 4. Redirige a la página de reportes
-    }, 1500); 
+      if (!response.ok) {
+        throw new Error(data.error || 'Credenciales incorrectas');
+      }
+
+      // 5. ¡Validación de Rol!
+      const { token, ...userData } = data;
+      if (userData.roles && userData.roles.includes('ROLE_ADMIN')) {
+        // 6. Es admin, guardamos la sesión
+        login(userData, token);
+        
+        setStatus('success');
+        console.log('¡Inicio de sesión de admin exitoso!');
+        
+        setTimeout(() => {
+          navigate('/admin/reportes');
+        }, 1500);
+
+      } else {
+        // 7. Es un usuario normal, no un admin
+        throw new Error('No tienes permisos de administrador.');
+      }
+
+    } catch (err) {
+      setErrorMessage(err.message);
+      setStatus('error');
+    }
   };
 
   return (
     <main className="admin-login-container">
       <div className="admin-login-box">
         
-        {/* Si el login es exitoso, muestra el saludo */}
         {status === 'success' ? (
           <div className="admin-login-success">
             <h3>¡Bienvenido, Admin!</h3>
-            {/* 4. Mensaje actualizado */}
             <p>Redirigiendo al panel...</p>
           </div>
         ) : (
           
-          /* Si no, muestra el formulario */
           <>
             <div className="admin-login-header">
               <h1 className="admin-login-title">Acceso de Administrador</h1>

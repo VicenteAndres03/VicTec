@@ -25,11 +25,21 @@ function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
+      // 1. PRIMERO verifica si la respuesta fue exitosa (status 200-299)
       if (!response.ok) {
-        throw new Error(data.error || 'Error al iniciar sesión');
+        // 2. Si no fue exitosa, intenta leer el error como texto o JSON
+        //    Muchos backends (como el tuyo en AuthController) envían errores en JSON
+        const errorData = await response.json().catch(() => {
+          // Si falla el .json() (como en tu AuthEntryPointJwt original), lee como texto
+          return response.text();
+        });
+
+        // 3. Lanza un error con el mensaje del backend o uno genérico
+        throw new Error(errorData.error || errorData.message || 'Error al iniciar sesión');
       }
+
+      // 4. Si llegas aquí, SABES que la respuesta es 'ok' y puedes parsear el JSON
+      const data = await response.json();
 
       // El backend ahora devuelve el usuario y el token
       const { token, ...userData } = data;
@@ -37,6 +47,7 @@ function LoginPage() {
 
     } catch (err) {
       setStatus('error');
+      // err.message ahora contendrá el error de red o el texto del backend
       setError(err.message);
     }
   };
