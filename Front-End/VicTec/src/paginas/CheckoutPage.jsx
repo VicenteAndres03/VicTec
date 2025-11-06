@@ -29,7 +29,14 @@ function CheckoutPage() {
 
   // Cargar el carrito al entrar a la página
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Verificar token antes de hacer cualquier cosa
+    const token = localStorage.getItem('token');
+    console.log('=== VERIFICACIÓN INICIAL ===');
+    console.log('Token en localStorage:', token ? 'Existe' : 'No existe');
+    console.log('isAuthenticated:', isAuthenticated);
+    console.log('user:', user);
+
+    if (!isAuthenticated || !token) {
       console.log('Usuario no autenticado, redirigiendo a login');
       navigate('/login');
       return;
@@ -41,21 +48,21 @@ function CheckoutPage() {
         setCartError(null);
         
         const headers = getAuthHeader();
+        console.log('=== CARGANDO CARRITO ===');
         console.log('Headers enviados:', headers);
         
         const response = await fetch('/api/v1/carrito', {
           headers: headers,
         });
 
-        console.log('Respuesta del servidor:', response.status, response.statusText);
+        console.log('Respuesta del carrito:', response.status, response.statusText);
 
         if (response.status === 401 || response.status === 403) {
-          // Token inválido o expirado
           const errorData = await response.json().catch(() => ({}));
-          console.error('Error de autorización:', errorData);
-          setCartError('No autorizado. Por favor, inicia sesión nuevamente.');
-          // Redirigir al login después de un tiempo
+          console.error('Error de autorización al cargar carrito:', errorData);
+          setCartError('Sesión expirada. Por favor, inicia sesión nuevamente.');
           setTimeout(() => {
+            localStorage.clear();
             navigate('/login');
           }, 2000);
           setLoadingCart(false);
@@ -69,7 +76,6 @@ function CheckoutPage() {
         }
         
         if (!response.ok) {
-          // Intentar leer el mensaje de error del backend
           let errorMessage = 'Error al cargar el carrito';
           try {
             const errorData = await response.json();
@@ -82,9 +88,9 @@ function CheckoutPage() {
         }
         
         const data = await response.json();
+        console.log('Carrito cargado:', data);
         setCartItems(data.items || []);
         
-        // Prellenar el email si el usuario está logueado
         if (user && user.email) {
           setFormData(prev => ({ ...prev, email: user.email }));
         }
@@ -107,9 +113,18 @@ function CheckoutPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!isAuthenticated) {
-      setError('Debes iniciar sesión para continuar');
+    // Verificar autenticación nuevamente antes de enviar
+    const token = localStorage.getItem('token');
+    console.log('=== INICIANDO CHECKOUT ===');
+    console.log('Token disponible:', !!token);
+    
+    if (!isAuthenticated || !token) {
+      setError('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
       setStatus('error');
+      setTimeout(() => {
+        localStorage.clear();
+        navigate('/login');
+      }, 2000);
       return;
     }
 
@@ -124,7 +139,6 @@ function CheckoutPage() {
 
     try {
       console.log('1. Creando dirección...');
-      // 1. Crear la dirección
       const direccionResponse = await fetch('/api/v1/direcciones', {
         method: 'POST',
         headers: getAuthHeader(),
@@ -133,7 +147,7 @@ function CheckoutPage() {
           ciudad: formData.ciudad,
           region: formData.region,
           codigoPostal: formData.codigoPostal,
-          pais: 'Chile' // Asumimos Chile
+          pais: 'Chile'
         }),
       });
       
@@ -146,7 +160,6 @@ function CheckoutPage() {
       console.log('Dirección creada:', direccionData);
 
       console.log('2. Creando pedido...');
-      // 2. Crear el pedido
       const pedidoResponse = await fetch('/api/v1/pedidos/crear', {
         method: 'POST',
         headers: getAuthHeader(),
@@ -161,32 +174,35 @@ function CheckoutPage() {
       const pedidoData = await pedidoResponse.json();
       console.log('Pedido creado:', pedidoData);
 
-      // Solo crear preferencia si el método de pago es webpay (Mercado Pago)
       if (formData.metodoPago === 'webpay') {
         console.log('3. Creando preferencia de pago...');
         console.log('PedidoId a enviar:', pedidoData.id);
         
-        // Obtener headers frescos para asegurar que el token esté incluido
-        const paymentHeaders = getAuthHeader();
-        console.log('Headers para crear preferencia:', paymentHeaders);
-        console.log('Token disponible:', !!paymentHeaders.Authorization);
+        // VALIDACIÓN CRÍTICA DEL TOKEN
+        const authHeaders = getAuthHeader();
+        console.log('=== VERIFICACIÓN PRE-PAYMENT ===');
+        console.log('Headers disponibles:', authHeaders);
+        console.log('¿Hay Authorization header?:', !!authHeaders.Authorization);
+        console.log('Token actual:', localStorage.getItem('token') ? 'Existe' : 'No existe');
         
-        // 3. Crear la preferencia de pago
+        if (!authHeaders.Authorization) {
+          throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
+        }
+        
         const preferenceResponse = await fetch('/api/v1/payment/create-preference', {
           method: 'POST',
-          headers: paymentHeaders,
+          headers: authHeaders,
           body: JSON.stringify({ pedidoId: pedidoData.id }),
         });
         
-        console.log('Respuesta de preferencia:', preferenceResponse.status, preferenceResponse.statusText);
+        console.log('=== RESPUESTA DE PREFERENCIA ===');
+        console.log('Status:', preferenceResponse.status);
+        console.log('StatusText:', preferenceResponse.statusText);
         
         if (!preferenceResponse.ok) {
           const errorData = await preferenceResponse.json().catch(() => ({ error: 'Error al crear la preferencia de pago' }));
           console.error('Error en preferencia:', errorData);
-          console.error('Status:', preferenceResponse.status);
-          console.error('StatusText:', preferenceResponse.statusText);
           
-          // Si es un error 401, puede ser que el token expiró
           if (preferenceResponse.status === 401 || preferenceResponse.status === 403) {
             throw new Error('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
           }
@@ -202,16 +218,16 @@ function CheckoutPage() {
         }
 
         console.log('4. Redirigiendo a Mercado Pago...');
-        // 4. Redirigir a Mercado Pago
         window.location.href = preferenceData.init_point;
       } else {
-        // Si es transferencia bancaria, mostrar mensaje de éxito
         setStatus('success');
         navigate('/compra-exitosa');
       }
 
     } catch (err) {
-      console.error('Error en checkout:', err);
+      console.error('=== ERROR EN CHECKOUT ===');
+      console.error('Mensaje:', err.message);
+      console.error('Stack:', err.stack);
       setStatus('error');
       setError(err.message || 'Ocurrió un error al procesar el pago');
     }
