@@ -1,6 +1,7 @@
 package ViDev.Victec.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+// 1. IMPORTA JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -11,19 +12,22 @@ public class CarritoItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 2. AÑADE @JsonIgnore AQUÍ
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "carrito_id", nullable = false)
-    @JsonBackReference
     private Carrito carrito;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER) // Eager está bien aquí, queremos ver el producto
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
     @Column(nullable = false)
     private int cantidad;
 
-    // Getters y Setters
+    // --- Constructores, Getters y Setters ---
+
+    public CarritoItem() {}
 
     public Long getId() {
         return id;
