@@ -31,6 +31,10 @@ public class PedidoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    // --- INYECCIÓN AÑADIDA ---
+    @Autowired
+    private PedidoItemRepository pedidoItemRepository; // Necesitamos esto para guardar los items
+
     public Pedido crearPedidoDesdeCarrito(Long usuarioId, Long direccionId) {
         Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         Carrito carrito = carritoRepository.findByUsuarioId(usuarioId).orElseThrow(() -> new RuntimeException("Carrito no encontrado o está vacío"));
@@ -39,12 +43,22 @@ public class PedidoService {
         if (!direccion.getUsuario().getId().equals(usuarioId)) {
             throw new RuntimeException("La dirección no pertenece al usuario");
         }
+        
+        if (carrito.getItems() == null || carrito.getItems().isEmpty()) {
+            throw new RuntimeException("El carrito está vacío");
+        }
 
         Pedido pedido = new Pedido();
         pedido.setUsuario(usuario);
         pedido.setDireccionEnvio(direccion);
         pedido.setFechaPedido(LocalDateTime.now());
         pedido.setEstado(EstadoPedido.PENDIENTE);
+
+        // --- INICIO DE LÓGICA CORREGIDA ---
+        
+        // 1. Guarda el pedido PRIMERO (sin items y con total 0) para que obtenga un ID.
+        pedido.setTotal(BigDecimal.ZERO);
+        Pedido pedidoGuardado = pedidoRepository.save(pedido);
 
         Set<PedidoItem> pedidoItems = new HashSet<>();
         BigDecimal total = BigDecimal.ZERO;
@@ -56,10 +70,14 @@ public class PedidoService {
             }
 
             PedidoItem pedidoItem = new PedidoItem();
-            pedidoItem.setPedido(pedido);
+            pedidoItem.setPedido(pedidoGuardado); // 2. Asigna el Pedido con ID
             pedidoItem.setProducto(producto);
             pedidoItem.setCantidad(carritoItem.getCantidad());
             pedidoItem.setPrecio(BigDecimal.valueOf(producto.getPrecio()));
+            
+            // 3. ¡MUY IMPORTANTE! Guarda el item individualmente
+            pedidoItemRepository.save(pedidoItem);
+            
             pedidoItems.add(pedidoItem);
 
             total = total.add(pedidoItem.getPrecio().multiply(BigDecimal.valueOf(carritoItem.getCantidad())));
@@ -69,14 +87,17 @@ public class PedidoService {
             productoRepository.save(producto);
         }
 
-        pedido.setItems(pedidoItems);
-        pedido.setTotal(total);
+        // 4. Actualiza el pedido con el total real y la lista de items
+        pedidoGuardado.setItems(pedidoItems);
+        pedidoGuardado.setTotal(total);
+        Pedido pedidoFinal = pedidoRepository.save(pedidoGuardado);
 
         // Limpiar carrito
         carrito.getItems().clear();
         carritoRepository.save(carrito);
 
-        return pedidoRepository.save(pedido);
+        return pedidoFinal; // 5. Devuelve el pedido completo y actualizado
+        // --- FIN DE LÓGICA CORREGIDA ---
     }
 
     public List<Pedido> getPedidosPorUsuario(Long usuarioId) {

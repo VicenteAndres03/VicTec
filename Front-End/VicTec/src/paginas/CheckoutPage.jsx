@@ -5,7 +5,8 @@ import './CheckoutPage.css';
 
 function CheckoutPage() {
   const navigate = useNavigate();
-  const { getAuthHeader, isAuthenticated, user } = useAuth();
+  // --- CAMBIO: Añadimos isTokenValid ---
+  const { getAuthHeader, isAuthenticated, user, isTokenValid } = useAuth();
 
   // Estados para el carrito
   const [cartItems, setCartItems] = useState([]);
@@ -29,18 +30,24 @@ function CheckoutPage() {
 
   // Cargar el carrito al entrar a la página
   useEffect(() => {
-    // Verificar token antes de hacer cualquier cosa
-    const token = localStorage.getItem('token');
-    console.log('=== VERIFICACIÓN INICIAL ===');
-    console.log('Token en localStorage:', token ? 'Existe' : 'No existe');
-    console.log('isAuthenticated:', isAuthenticated);
-    console.log('user:', user);
-
-    if (!isAuthenticated || !token) {
-      console.log('Usuario no autenticado, redirigiendo a login');
+    // --- INICIO DE CAMBIO LÓGICO ---
+    console.log('=== VERIFICACIÓN INICIAL CHECKOUT ===');
+    
+    // 1. Llama a isTokenValid() ANTES que cualquier otra cosa.
+    //    Esta función (con el arreglo del Paso 1) limpiará la sesión
+    //    automáticamente si el token está expirado o corrupto.
+    if (!isTokenValid()) { 
+      console.log('Token no válido o expirado, redirigiendo a login');
       navigate('/login');
       return;
     }
+    // 2. Si isTokenValid() pasa, sabemos que isAuthenticated es confiable.
+    if (!isAuthenticated) {
+      console.log('Usuario no autenticado (post-validación), redirigiendo a login');
+      navigate('/login');
+      return;
+    }
+    // --- FIN DE CAMBIO LÓGICO ---
 
     const fetchCarrito = async () => {
       try {
@@ -61,11 +68,9 @@ function CheckoutPage() {
           const errorData = await response.json().catch(() => ({}));
           console.error('Error de autorización al cargar carrito:', errorData);
           setCartError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-          setTimeout(() => {
-            localStorage.clear();
-            navigate('/login');
-          }, 2000);
-          setLoadingCart(false);
+          // Forzamos la limpieza y redirección
+          isTokenValid(); // Esto llamará a logout()
+          navigate('/login');
           return;
         }
 
@@ -103,7 +108,7 @@ function CheckoutPage() {
     };
 
     fetchCarrito();
-  }, [isAuthenticated, getAuthHeader, navigate, user]);
+  }, [isAuthenticated, getAuthHeader, navigate, user, isTokenValid]); // <-- Añadimos isTokenValid a las dependencias
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -113,20 +118,20 @@ function CheckoutPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Verificar autenticación nuevamente antes de enviar
-    const token = localStorage.getItem('token');
+    // --- INICIO DE CAMBIO: Validación en handleSubmit ---
     console.log('=== INICIANDO CHECKOUT ===');
-    console.log('Token disponible:', !!token);
     
-    if (!isAuthenticated || !token) {
+    // 3. Volvemos a validar el token ANTES de enviar el formulario
+    //    (por si expiró mientras el usuario llenaba los campos)
+    if (!isTokenValid()) {
       setError('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
       setStatus('error');
       setTimeout(() => {
-        localStorage.clear();
         navigate('/login');
       }, 2000);
       return;
     }
+    // --- FIN DE CAMBIO ---
 
     if (cartItems.length === 0) {
       setError('Tu carrito está vacío');
@@ -147,7 +152,7 @@ function CheckoutPage() {
           ciudad: formData.ciudad,
           region: formData.region,
           codigoPostal: formData.codigoPostal,
-          pais: 'Chile'
+          pais: 'Chile' // Hardcodeado 'pais' ya que no está en tu formulario
         }),
       });
       
@@ -182,10 +187,9 @@ function CheckoutPage() {
         const authHeaders = getAuthHeader();
         console.log('=== VERIFICACIÓN PRE-PAYMENT ===');
         console.log('Headers disponibles:', authHeaders);
-        console.log('¿Hay Authorization header?:', !!authHeaders.Authorization);
-        console.log('Token actual:', localStorage.getItem('token') ? 'Existe' : 'No existe');
         
         if (!authHeaders.Authorization) {
+          // Esto no debería pasar gracias al isTokenValid() de arriba, pero es una buena defensa
           throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
         }
         
@@ -197,7 +201,6 @@ function CheckoutPage() {
         
         console.log('=== RESPUESTA DE PREFERENCIA ===');
         console.log('Status:', preferenceResponse.status);
-        console.log('StatusText:', preferenceResponse.statusText);
         
         if (!preferenceResponse.ok) {
           const errorData = await preferenceResponse.json().catch(() => ({ error: 'Error al crear la preferencia de pago' }));
@@ -227,9 +230,15 @@ function CheckoutPage() {
     } catch (err) {
       console.error('=== ERROR EN CHECKOUT ===');
       console.error('Mensaje:', err.message);
-      console.error('Stack:', err.stack);
       setStatus('error');
       setError(err.message || 'Ocurrió un error al procesar el pago');
+      // Si el error es de sesión, lo mandamos al login
+      if (err.message.toLowerCase().includes('sesión') || err.message.toLowerCase().includes('token')) {
+        setTimeout(() => {
+          isTokenValid(); // Llama a logout
+          navigate('/login');
+        }, 2500);
+      }
     }
   };
 
@@ -240,7 +249,10 @@ function CheckoutPage() {
   }, 0);
   const envio = subtotal > 0 ? 3500 : 0;
   const totalPedido = subtotal + envio;
-
+  
+  // (El JSX de retorno no cambia, así que lo omito por brevedad,
+  // pero debes reemplazar el archivo completo)
+  
   return (
     <main className="checkout-container">
       {loadingCart ? (
@@ -315,8 +327,8 @@ function CheckoutPage() {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="codigoPostal">Código Postal (Opcional)</label>
-                  <input type="text" id="codigoPostal" name="codigoPostal" value={formData.codigoPostal} onChange={handleChange} />
+                  <label htmlFor="codigoPostal">Código Postal</label>
+                  <input type="text" id="codigoPostal" name="codigoPostal" value={formData.codigoPostal} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
                   <label htmlFor="telefono">Teléfono</label>

@@ -1,6 +1,8 @@
 package ViDev.Victec.security.jwt;
 
 import java.util.Date;
+// --- 1. IMPORTA ARRAYS ---
+import java.util.Arrays; 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +37,12 @@ public class JwtUtils {
         .compact();
   }
   
+  // --- 2. MÉTODO key() CORREGIDO ---
+  // (Esta es la lógica correcta que tenías en tu otro archivo JwtUtil.java)
   private Key key() {
-    return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    byte[] bytes = jwtSecret.getBytes();
+    // Asegura que la clave tenga exactamente 32 bytes (256 bits) para HS256
+    return Keys.hmacShaKeyFor(Arrays.copyOf(bytes, 32));
   }
 
   public String getUserNameFromJwtToken(String token) {
@@ -56,6 +62,8 @@ public class JwtUtils {
       logger.error("JWT token is unsupported: {}", e.getMessage());
     } catch (IllegalArgumentException e) {
       logger.error("JWT claims string is empty: {}", e.getMessage());
+    } catch (io.jsonwebtoken.security.SignatureException e) { // <-- Captura el error de firma
+      logger.error("Invalid JWT signature: {}", e.getMessage());
     }
 
     return false;
