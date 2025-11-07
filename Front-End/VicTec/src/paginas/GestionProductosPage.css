@@ -121,6 +121,8 @@
   align-items: center;
   z-index: 100;
   animation: fadeIn 0.3s ease;
+  /* --- AÑADIDO: Permite scrollear si el formulario es muy largo --- */
+  overflow-y: auto; 
 }
 
 @keyframes fadeIn {
@@ -136,6 +138,8 @@
   max-width: 700px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.3s ease-out;
+  /* --- AÑADIDO: Margen para el scroll --- */
+  margin: 2rem 0; 
 }
 
 @keyframes slideIn {
@@ -172,7 +176,10 @@
   margin-bottom: 0.5rem;
 }
 
-.form-group-admin input {
+/* --- MODIFICADO: Añadido 'select' y 'textarea' --- */
+.form-group-admin input,
+.form-group-admin select,
+.form-group-admin textarea {
   font-family: inherit;
   font-size: 1rem;
   padding: 0.8rem 1rem;
@@ -180,9 +187,19 @@
   border-radius: 8px;
   background-color: #f9f9f9;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  /* --- AÑADIDO: Para que el select no se vea cortado --- */
+  height: 48px; 
 }
 
-.form-group-admin input:focus {
+/* --- AÑADIDO: Altura auto para textarea --- */
+.form-group-admin textarea {
+  height: auto;
+}
+
+/* --- MODIFICADO: Añadido 'select:focus' y 'textarea:focus' --- */
+.form-group-admin input:focus,
+.form-group-admin select:focus,
+.form-group-admin textarea:focus {
   outline: none;
   border-color: var(--color-secundario); /* Naranja */
   box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.2);

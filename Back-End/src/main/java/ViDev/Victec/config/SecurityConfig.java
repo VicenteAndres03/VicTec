@@ -73,27 +73,39 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 
+                // Rutas de Autenticación
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/google-login").permitAll()
                 .requestMatchers("/api/v1/auth/**").authenticated()
                 
-                // --- AQUÍ ESTÁ LA CORRECCIÓN ---
-                // Se añadió "/api/v1/productos" para permitir la lista y la búsqueda
+                // Rutas de Productos
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/productos", "/api/v1/productos/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
                 
+                // Rutas Públicas
                 .requestMatchers("/api/v1/soporte/**").permitAll()
                 .requestMatchers("/api/v1/webhooks/**").permitAll() 
                 .requestMatchers("/compra-exitosa", "/pago-fallido", "/pago-pendiente").permitAll()
                 
+                // --- ¡ESTA ES LA LÍNEA QUE DEBES AÑADIR! ---
+                .requestMatchers("/error").permitAll() 
+                
+                // Rutas de Admin
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+
+                // Rutas de Usuario Autenticado
                 .requestMatchers("/api/v1/carrito/**").authenticated()
                 .requestMatchers("/api/v1/direcciones/**").authenticated()
                 .requestMatchers("/api/v1/pedidos/**").authenticated()
                 .requestMatchers("/api/v1/payment/**").authenticated()
+                
+                // Todo lo demás requiere autenticación
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
         
-        http.authenticationProvider(authenticationProvider(userDetailsService));
+        // (Recuerda que la línea http.authenticationProvider(...) se eliminó correctamente)
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 

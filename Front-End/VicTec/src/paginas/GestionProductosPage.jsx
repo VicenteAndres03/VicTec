@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react'; // 1. Importar useEffect
-import { useAuth } from '../context/AuthContext'; // 2. Importar useAuth
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import './GestionProductosPage.css';
-
-// 3. Quitar el mockProductos
 
 // --- Estado inicial para el formulario ---
 const formularioVacio = {
@@ -12,33 +10,41 @@ const formularioVacio = {
   precio: '',
   stock: '',
   imgUrl: '',
-  // 4. Añadir campos que faltan en tu modelo Producto.java
   precioAntiguo: null,
   enOferta: false,
   sku: '',
-  categoria: '',
+  // --- MODIFICACIÓN: Asegurarnos que el valor inicial sea '' ---
+  categoria: '', 
   descripcion: ''
 };
 
+// --- AÑADIDO: Lista de categorías ---
+// ¡Puedes editar esta lista como necesites!
+const CATEGORIAS_DISPONIBLES = [
+  { valor: 'Audio', texto: 'Audio (Audífonos, Parlantes)' },
+  { valor: 'Smartwatch', texto: 'Smartwatches y Wearables' },
+  { valor: 'Accesorios', texto: 'Accesorios (Cables, Cargadores)' },
+  { valor: 'Drones', texto: 'Drones y Accesorios' },
+  // { valor: 'Componentes', texto: 'Componentes PC' },
+  // { valor: 'Celulares', texto: 'Celulares' },
+];
+// --- FIN DE LA MODIFICACIÓN ---
+
 function GestionProductosPage() {
-  const [productos, setProductos] = useState([]); // 5. Empezar con array vacío
+  const [productos, setProductos] = useState([]);
   const [modoForm, setModoForm] = useState('oculto'); 
   const [productoActual, setProductoActual] = useState(formularioVacio);
   
-  // 6. Estados de carga y error
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formError, setFormError] = useState(null);
 
-  // 7. Obtener el header de autenticación
   const { getAuthHeader } = useAuth();
 
-  // 8. Función para cargar productos desde la API
   const loadProductos = async () => {
     try {
       setLoading(true);
       setError(null);
-      // El GET es público, no necesita auth
       const response = await fetch('/api/v1/productos'); 
       if (!response.ok) throw new Error('No se pudieron cargar los productos');
       const data = await response.json();
@@ -50,22 +56,19 @@ function GestionProductosPage() {
     }
   };
 
-  // 9. Cargar productos la primera vez
   useEffect(() => {
     loadProductos();
-  }, []); // El array vacío asegura que se ejecute solo una vez
+  }, []); 
 
   // --- Manejadores del Formulario ---
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setProductoActual((prev) => ({
       ...prev,
-      // 10. Manejar inputs de tipo 'checkbox'
       [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  // 11. REEMPLAZAR handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
@@ -77,7 +80,7 @@ function GestionProductosPage() {
     try {
       const response = await fetch(url, {
         method: method,
-        headers: getAuthHeader(), // <-- 12. ¡Usar el token de Admin!
+        headers: getAuthHeader(), 
         body: JSON.stringify(productoActual),
       });
 
@@ -86,10 +89,9 @@ function GestionProductosPage() {
         throw new Error(errData.message || 'Error al guardar el producto');
       }
 
-      // Éxito
       setModoForm('oculto');
       setProductoActual(formularioVacio);
-      await loadProductos(); // 13. Recargar la lista de productos
+      await loadProductos(); 
 
     } catch (err) {
       setFormError(err.message);
@@ -113,24 +115,22 @@ function GestionProductosPage() {
     setFormError(null);
   };
 
-  // 14. REEMPLAZAR handleEliminar
   const handleEliminar = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
       try {
         const response = await fetch(`/api/v1/productos/${id}`, {
           method: 'DELETE',
-          headers: getAuthHeader(), // <-- 15. ¡Usar el token de Admin!
+          headers: getAuthHeader(), 
         });
 
         if (!response.ok) {
           throw new Error('Error al eliminar el producto');
         }
         
-        // 16. Recargar la lista
         await loadProductos();
 
       } catch (err) {
-        setError(err.message); // Mostrar error en la tabla
+        setError(err.message); 
       }
     }
   };
@@ -143,7 +143,6 @@ function GestionProductosPage() {
         
         {formError && <p className="register-error-message">{formError}</p>}
 
-        {/* 17. Añadimos más campos al formulario */}
         <form onSubmit={handleSubmit}>
           {/* Fila 1: Nombre y Marca */}
           <div className="form-row">
@@ -187,10 +186,27 @@ function GestionProductosPage() {
               <label htmlFor="imgUrl">URL de la Imagen</label>
               <input type="url" id="imgUrl" name="imgUrl" placeholder="https://ejemplo.com/imagen.png" value={productoActual.imgUrl} onChange={handleInputChange} required />
             </div>
+             
+             {/* --- INICIO DE LA MODIFICACIÓN --- */}
              <div className="form-group-admin">
               <label htmlFor="categoria">Categoría</label>
-              <input type="text" id="categoria" name="categoria" value={productoActual.categoria} onChange={handleInputChange} />
+              <select 
+                id="categoria" 
+                name="categoria" 
+                value={productoActual.categoria} 
+                onChange={handleInputChange}
+                required
+              >
+                <option value="" disabled>Selecciona una categoría</option>
+                {CATEGORIAS_DISPONIBLES.map(cat => (
+                  <option key={cat.valor} value={cat.valor}>
+                    {cat.texto}
+                  </option>
+                ))}
+              </select>
             </div>
+            {/* --- FIN DE LA MODIFICACIÓN --- */}
+
           </div>
 
           {/* Fila 5: Descripción */}
@@ -230,10 +246,8 @@ function GestionProductosPage() {
   // --- Renderizado Principal ---
   return (
     <main className="admin-gestion-container">
-      {/* 1. Overlay del Formulario */}
       {modoForm !== 'oculto' && renderFormulario()}
 
-      {/* 2. Cabecera de la Página */}
       <div className="admin-gestion-header">
         <h1>Gestión de Productos</h1>
         <button className="admin-button button-add" onClick={handleAbrirFormNuevo}>
@@ -241,11 +255,9 @@ function GestionProductosPage() {
         </button>
       </div>
 
-      {/* 18. Lógica de Carga y Error */}
       {error && <p className="register-error-message">{error}</p>}
       {loading && <p>Cargando productos...</p>}
 
-      {/* 3. Tabla de Productos */}
       {!loading && !error && (
         <div className="admin-table-container">
           <table className="admin-product-table">
@@ -253,7 +265,8 @@ function GestionProductosPage() {
               <tr>
                 <th>Imagen</th>
                 <th>Nombre</th>
-                <th>Marca</th>
+                {/* --- AÑADIDO: Columna Categoría --- */}
+                <th>Categoría</th>
                 <th>Precio</th>
                 <th>Stock</th>
                 <th>Acciones</th>
@@ -266,7 +279,8 @@ function GestionProductosPage() {
                     <img src={prod.imgUrl} alt={prod.nombre} />
                   </td>
                   <td className="cell-nombre">{prod.nombre}</td>
-                  <td>{prod.marca}</td>
+                  {/* --- AÑADIDO: Celda Categoría --- */}
+                  <td>{prod.categoria}</td>
                   <td>CLP${prod.precio.toLocaleString('es-CL')}</td>
                   <td>{prod.stock}</td>
                   <td className="cell-actions">

@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-// 1. --- IMPORTAMOS useSearchParams ---
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 import './productos.css';
 
-// 2. --- MODIFICAMOS ProductFilters ---
-// Ahora recibe 'setSearchParams' y 'categoriaActual'
 function ProductFilters({ setSearchParams, categoriaActual }) {
 
   // Función para manejar el clic en un filtro
@@ -35,13 +32,42 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
           <button
             // Comprueba si la categoría activa es 'Audio'
             className={categoriaActual === 'Audio' ? 'active' : ''}
-            // 3. --- IMPORTANTE: Usamos el valor real del Backend ('Audio') ---
+            // Usamos el valor real del Backend ('Audio')
             onClick={() => handleFilterClick('Audio')}
           >
             Audífonos
           </button>
         </li>
-        {/* Aquí puedes añadir más categorías en el futuro */}
+
+        {/* --- INICIO DE LA MODIFICACIÓN --- */}
+        {/* Añadimos los nuevos botones de categoría */}
+        <li>
+          <button
+            className={categoriaActual === 'Smartwatch' ? 'active' : ''}
+            onClick={() => handleFilterClick('Smartwatch')}
+          >
+            Smartwatches
+          </button>
+        </li>
+        <li>
+          <button
+            className={categoriaActual === 'Accesorios' ? 'active' : ''}
+            onClick={() => handleFilterClick('Accesorios')}
+          >
+            Accesorios
+          </button>
+        </li>
+        <li>
+          <button
+            className={categoriaActual === 'Drones' ? 'active' : ''}
+            onClick={() => handleFilterClick('Drones')}
+          >
+            Drones
+          </button>
+        </li>
+        {/* (Puedes añadir más aquí en el futuro) */}
+        {/* --- FIN DE LA MODIFICACIÓN --- */}
+
       </ul>
     </nav>
   );
@@ -54,12 +80,9 @@ function ProductosPage() {
   const [error, setError] = useState(null);
   const { getAuthHeader, isAuthenticated } = useAuth();
   
-  // 4. --- OBTENEMOS 'searchParams' y 'setSearchParams' ---
+  // Obtenemos 'searchParams' y 'setSearchParams'
   const [searchParams, setSearchParams] = useSearchParams();
   const categoria = searchParams.get('categoria'); // Obtenemos el filtro de la URL
-
-  // 5. --- LÓGICA DE BÚSQUEDA ELIMINADA ---
-  // Ya no necesitamos 'localSearchTerm' ni 'handleSearchSubmit'
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -67,7 +90,7 @@ function ProductosPage() {
         setLoading(true);
         setError(null);
         
-        // 6. --- URL DE FETCH MODIFICADA ---
+        // URL de FETCH MODIFICADA
         let url = '/api/v1/productos';
         if (categoria) {
           // Si hay una categoría, la añadimos a la URL
@@ -89,11 +112,11 @@ function ProductosPage() {
     };
 
     fetchProductos();
-  // 7. --- DEPENDENCIA DEL useEffect ACTUALIZADA ---
-  }, [categoria]); // Se ejecuta cada vez que 'categoria' (de la URL) cambia
+  // Se ejecuta cada vez que 'categoria' (de la URL) cambia
+  }, [categoria]); 
 
   const handleAddToCart = async (e, productoId) => {
-    // ... (esta función se queda igual) ...
+    // (esta función se queda igual)
     e.preventDefault(); 
     e.stopPropagation(); 
     if (!isAuthenticated) {
@@ -119,9 +142,6 @@ function ProductosPage() {
     }
   };
 
-  // 8. --- LÓGICA DE BÚSQUEDA ELIMINADA ---
-  // (handleSearchSubmit ya no existe)
-
 
   if (loading) {
     return <div className="productos-container"><p>Cargando productos...</p></div>;
@@ -134,16 +154,14 @@ function ProductosPage() {
   return (
     <main className="productos-container">
       
-      {/* 9. --- Título dinámico según el filtro --- */}
+      {/* Título dinámico según el filtro */}
       {categoria ? (
         <h1 className="productos-title">Categoría: {categoria}</h1>
       ) : (
         <h1 className="productos-title">Nuestros Productos</h1>
       )}
       
-      {/* 10. --- BARRA DE BÚSQUEDA ELIMINADA --- */}
-
-      {/* 11. --- Pasamos las props al componente de filtros --- */}
+      {/* Pasamos las props al componente de filtros */}
       <ProductFilters 
         setSearchParams={setSearchParams} 
         categoriaActual={categoria} 

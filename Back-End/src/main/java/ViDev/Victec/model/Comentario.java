@@ -1,7 +1,7 @@
 package ViDev.Victec.model;
 
-// 1. IMPORTA JsonIgnore
-import com.fasterxml.jackson.annotation.JsonIgnore;
+// 1. --- IMPORTA JsonBackReference ---
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -12,8 +12,8 @@ public class Comentario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 2. AÑADE @JsonIgnore AQUÍ
-    @JsonIgnore
+    // 2. --- ¡CAMBIA ESTO! ---
+    @JsonBackReference // <-- De @JsonIgnore a @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
@@ -27,7 +27,7 @@ public class Comentario {
     
     private String fecha;
 
-    // --- Constructores, Getters y Setters ---
+    // --- (Constructores, Getters y Setters se quedan igual) ---
 
     public Comentario() {}
     

@@ -7,19 +7,27 @@ import ViDev.Victec.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
+
+// 1. --- ¡IMPORTACIÓN CORREGIDA! ---
+// Asegúrate de que sea la anotación de Spring
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+// 2. --- ANOTACIÓN AÑADIDA A LA CLASE ---
+// Esto hace que todos los métodos sean transaccionales y de solo lectura por defecto.
+@Transactional(readOnly = true)
 public class ProductoService {
 
     @Autowired
     private ProductoRepository productoRepository;
 
     @PostConstruct
+    // 3. --- MÉTODO DE ESCRITURA ---
+    // Anulamos readOnly=true porque este método SÍ escribe en la BD.
     @Transactional
     private void loadMockData() {
         
@@ -50,24 +58,25 @@ public class ProductoService {
 
     // --- Métodos Públicos (Ahora leen de la BD) ---
 
+    // (Este método ahora hereda @Transactional(readOnly = true) de la clase)
     public List<Producto> getAllProductos() {
         return productoRepository.findAll();
     }
 
+    // (Este método ahora hereda @Transactional(readOnly = true) de la clase)
     public Optional<Producto> getProductoById(Long id) {
         return productoRepository.findById(id);
     }
     
-    // --- MÉTODO ANTIGUO ELIMINADO ---
-    // public List<Producto> searchProductos(String query) { ... }
-    
-    // --- ¡MÉTODO NUEVO AÑADIDO! ---
+    // 4. --- MÉTODO CORREGIDO ---
+    // (Este método ahora hereda @Transactional(readOnly = true) de la clase)
     public List<Producto> getProductosByCategoria(String categoria) {
         // Llama al nuevo método del repositorio
         return productoRepository.findByCategoriaIgnoreCase(categoria);
     }
-    // --- FIN DEL MÉTODO NUEVO ---
 
+    // 5. --- MÉTODO DE ESCRITURA ---
+    // Anulamos readOnly=true
     @Transactional
     public Producto saveProducto(Producto producto) {
         
@@ -87,6 +96,8 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
+    // 6. --- MÉTODO DE ESCRITURA ---
+    // Anulamos readOnly=true
     @Transactional
     public Optional<Producto> updateProducto(Long id, Producto productoActualizado) {
         Optional<Producto> productoOpt = productoRepository.findById(id);
@@ -128,6 +139,9 @@ public class ProductoService {
         }
     }
 
+    // 7. --- MÉTODO DE ESCRITURA ---
+    // Anulamos readOnly=true
+    @Transactional
     public boolean deleteProducto(Long id) {
         if (productoRepository.existsById(id)) {
             productoRepository.deleteById(id);
@@ -137,6 +151,8 @@ public class ProductoService {
         }
     }
 
+    // 8. --- MÉTODO DE ESCRITURA ---
+    // Anulamos readOnly=true
     @Transactional
     public Optional<Producto> updateStock(Long id, int stock) {
         Optional<Producto> productoOpt = productoRepository.findById(id);
