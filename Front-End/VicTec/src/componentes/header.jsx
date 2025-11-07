@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-// 1. --- IMPORTAR useNavigate ---
-import { Link, useNavigate } from "react-router-dom";
+// 1. --- useNavigate ya no es necesario aquí ---
+import { Link } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 import "./header.css";
 import logo from "../assets/Circulo.png";
@@ -9,22 +9,10 @@ function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
-  // 2. --- ESTADO PARA LA BÚSQUEDA ---
-  const [searchTerm, setSearchTerm] = useState("");
-  const navigate = useNavigate(); // Hook para redirigir
+  // 2. --- LÓGICA DE BÚSQUEDA ELIMINADA ---
+  // (El estado searchTerm y la función handleSearchSubmit se fueron)
   
   const { isAuthenticated, user, logout } = useAuth();
-
-  // 3. --- FUNCIÓN PARA MANEJAR LA BÚSQUEDA ---
-  const handleSearchSubmit = (e) => {
-    e.preventDefault(); // Evita que la página se recargue
-    if (searchTerm.trim()) {
-      // Redirige a la página de productos con el parámetro de búsqueda
-      navigate(`/productos?q=${encodeURIComponent(searchTerm.trim())}`);
-      // Opcional: limpiar la barra de búsqueda después
-      // setSearchTerm(""); 
-    }
-  };
 
   return (
     <header className="main-header">
@@ -41,35 +29,15 @@ function Header() {
             <li><Link to="/soporte">Soporte</Link></li>
             <li><Link to="/blog">Blog</Link></li>
             
-            {/* 4. --- FORMULARIO DE BÚSQUEDA (MÓVIL) --- */}
-            <li className="nav-search-bar">
-              <form onSubmit={handleSearchSubmit}>
-                <input 
-                  type="text" 
-                  placeholder="Buscar productos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <button type="submit">🔍</button>
-              </form>
-            </li>
+            {/* 3. --- FORMULARIO DE BÚSQUEDA (MÓVIL) ELIMINADO --- */}
           </ul>
         </nav>
 
         <div className="header-actions">
           
-          {/* 5. --- FORMULARIO DE BÚSQUEDA (ESCRITORIO) --- */}
-          <form className="search-bar" onSubmit={handleSearchSubmit}>
-            <input 
-              type="text" 
-              placeholder="Buscar productos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button type="submit">🔍</button>
-          </form>
+          {/* 4. --- FORMULARIO DE BÚSQUEDA (ESCRITORIO) ELIMINADO --- */}
           
-          {/* ... (resto del header sin cambios) ... */}
+          {/* ... (el resto del header queda igual) ... */}
           <div className="user-icons">
             <div className="user-menu">
               <span className="icon-link user-icon-trigger" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>

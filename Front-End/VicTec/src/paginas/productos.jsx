@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// 1. --- IMPORTAR useSearchParams ---
+// 1. --- IMPORTAR useSearchParams (si no estaba) y useState ---
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 import './productos.css';
@@ -38,9 +38,12 @@ function ProductosPage() {
   const [error, setError] = useState(null);
   const { getAuthHeader, isAuthenticated } = useAuth();
   
-  // 2. --- LEER LOS PARÁMETROS DE LA URL ---
-  const [searchParams] = useSearchParams();
-  const query = searchParams.get('q'); // 'q' es el nombre que definimos en el header
+  // 2. --- OBTENER 'setSearchParams' PARA ACTUALIZAR LA URL ---
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('q'); 
+
+  // 3. --- ESTADO LOCAL PARA EL CAMPO DE TEXTO ---
+  const [localSearchTerm, setLocalSearchTerm] = useState(query || "");
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -48,14 +51,11 @@ function ProductosPage() {
         setLoading(true);
         setError(null);
         
-        // 3. --- CREAR LA URL DINÁMICA ---
         let url = '/api/v1/productos';
         if (query) {
-          // Si hay una búsqueda, añade el parámetro
           url = `/api/v1/productos?q=${encodeURIComponent(query)}`;
         }
         
-        // 4. --- USAR LA URL DINÁMICA ---
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -71,12 +71,10 @@ function ProductosPage() {
     };
 
     fetchProductos();
-  // 5. --- AÑADIR 'query' A LAS DEPENDENCIAS ---
-  // Esto hace que la página se recargue si la búsqueda cambia
   }, [query]); 
 
   const handleAddToCart = async (e, productoId) => {
-    // ... (esta función se queda igual que la que arreglamos antes) ...
+    // ... (esta función se queda igual) ...
     e.preventDefault(); 
     e.stopPropagation(); 
     if (!isAuthenticated) {
@@ -102,6 +100,19 @@ function ProductosPage() {
     }
   };
 
+  // 4. --- FUNCIÓN PARA MANEJAR EL ENVÍO DE BÚSQUEDA ---
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (localSearchTerm.trim()) {
+      // Actualiza el parámetro 'q' en la URL
+      setSearchParams({ q: localSearchTerm.trim() });
+    } else {
+      // Si está vacío, quita el parámetro 'q' de la URL
+      setSearchParams({});
+    }
+  };
+
+
   if (loading) {
     return <div className="productos-container"><p>Cargando productos...</p></div>;
   }
@@ -113,18 +124,27 @@ function ProductosPage() {
   return (
     <main className="productos-container">
       
-      {/* 6. --- TÍTULO DINÁMICO --- */}
       {query ? (
         <h1 className="productos-title">Resultados para: "{query}"</h1>
       ) : (
         <h1 className="productos-title">Nuestros Productos</h1>
       )}
       
+      {/* 5. --- FORMULARIO DE BÚSQUEDA AÑADIDO --- */}
+      <form className="productos-search-bar" onSubmit={handleSearchSubmit}>
+        <input
+          type="text"
+          placeholder="Buscar en productos..."
+          value={localSearchTerm}
+          onChange={(e) => setLocalSearchTerm(e.target.value)}
+        />
+        <button type="submit">Buscar</button>
+      </form>
+
       <ProductFilters />
 
       <div className="productos-grid">
         
-        {/* 7. --- MENSAJE SI NO HAY RESULTADOS --- */}
         {!loading && productos.length === 0 && (
           <p>No se encontraron productos que coincidan con tu búsqueda.</p>
         )}
@@ -135,7 +155,6 @@ function ProductosPage() {
             className="product-card" 
             key={producto.id}
           >
-            {/* ... (el resto del card se queda igual) ... */}
             <div className="product-image-box">
               <img src={producto.imgUrl} alt={producto.nombre} className="product-image-real" />
               {producto.enOferta && <span className="sale-tag">Sale</span>}

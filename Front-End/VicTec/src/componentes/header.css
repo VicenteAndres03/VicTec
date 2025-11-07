@@ -24,7 +24,6 @@
 }
 
 /* --- Logo --- */
-/* --- Logo --- */
 /* Nuevo contenedor para agrupar imagen y texto */
 .logo-container {
   display: flex;
@@ -58,10 +57,6 @@
   background-clip: text;
 }
 
-/* NOTA: ¡Asegúrate de borrar las reglas CSS antiguas 
-  para '.logo' y '.logo a' para que no haya conflictos!
-*/
-
 /* --- Enlaces de Navegación --- */
 .nav-links ul {
   margin: 0;
@@ -90,34 +85,7 @@
   gap: 1.5rem;
 }
 
-.search-bar {
-  display: flex;
-  align-items: center;
-  background-color: #1e2a2e; /* Fondo un poco más claro */
-  border-radius: 25px;
-  overflow: hidden;
-}
-
-.search-bar input {
-  background: none;
-  border: none;
-  outline: none;
-  padding: 0.6rem 1rem;
-  color: var(--color-texto);
-  font-size: 0.9rem;
-}
-
-.search-bar input::placeholder {
-  color: var(--color-texto-sec);
-}
-
-.search-bar button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding-right: 1rem;
-  font-size: 1rem;
-}
+/* --- ESTILOS .search-bar ELIMINADOS --- */
 
 .user-icons {
   display: flex;
@@ -206,9 +174,7 @@
 }
 
 /* El 'placeholder' para la búsqueda dentro del nav-links (oculto en escritorio) */
-.nav-search-bar {
-  display: none;
-}
+/* --- ESTILO .nav-search-bar ELIMINADO --- */
 
 /* --- Media Query: MODO CELULAR --- */
 /* (Puedes ajustar 900px al tamaño que prefieras) */
@@ -266,15 +232,11 @@
     transition: all 0.3s ease-in-out;
   }
 
-  /* Búsqueda dentro del menú (oculta en escritorio) */
-  .nav-search-bar {
-    display: none;
-  }
+  /* --- ESTILO .nav-search-bar ELIMINADO --- */
 
   /* 1. Ocultamos la búsqueda de escritorio y mostramos la hamburguesa */
-  .header-actions .search-bar {
-    display: none;
-  }
+  /* --- ESTILO .header-actions .search-bar ELIMINADO --- */
+  
   .hamburger-icon {
     display: block;
     margin-left: 1rem;
@@ -337,28 +299,5 @@
     background-color: #1e2a2e;
   }
 
-  /* 5. Mostramos la búsqueda DENTRO del menú móvil */
-  .nav-links .nav-search-bar {
-    display: flex;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .nav-links .nav-search-bar input {
-    background-color: #1e2a2e;
-    border-radius: 25px 0 0 25px;
-    border: none;
-    outline: none;
-    padding: 0.6rem 1rem;
-    color: var(--color-texto);
-  }
-
-  .nav-links .nav-search-bar button {
-    background-color: #1e2a2e;
-    border-radius: 0 25px 25px 0;
-    border: none;
-    cursor: pointer;
-    padding-right: 1rem;
-    color: var(--color-texto-sec);
-  }
+  /* 5. --- ESTILOS .nav-links .nav-search-bar ELIMINADOS --- */
 }
