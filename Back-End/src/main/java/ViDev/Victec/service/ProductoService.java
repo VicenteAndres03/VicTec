@@ -29,60 +29,24 @@ public class ProductoService {
 
         // --- Producto 1: Auriculares ---
         Producto audifonos = new Producto();
-        audifonos.setNombre("Auriculares Pro-Gen");
-        audifonos.setMarca("VicTec");
-        audifonos.setPrecio(39990);
-        audifonos.setPrecioAntiguo(59990.0);
-        audifonos.setEnOferta(true);
-        audifonos.setImgUrl("https://i.imgur.com/8Q1mP0B.png");
-        audifonos.setSku("VT-AUD-PRO-001");
-        audifonos.setStock(25);
+        audifonos.setNombre("Auriculares TWS Modelo Mate50"); // <-- Nombre actualizado
+        audifonos.setMarca("XIAOMI"); // <-- Marca actualizada
+        audifonos.setPrecio(12000); // <-- Precio actualizado
+        audifonos.setPrecioAntiguo(null); // <-- Sin precio antiguo
+        audifonos.setEnOferta(false); // <-- No en oferta
+        audifonos.setImgUrl("https://i.imgur.com/333A19a.png"); // <-- URL de imagen actualizada
+        audifonos.setSku("XI-TWS-M50-001");
+        audifonos.setStock(84);
         audifonos.setCategoria("Audio");
-        audifonos.setDescripcion("Sumérgete en el sonido con los Auriculares Pro-Gen...");
+        audifonos.setDescripcion("Descubre la libertad del verdadero sonido inalámbrico con los auriculares TWS Mate50. Diseñados para tu estilo de vida activo, estos auriculares combinan un diseño ergonómico y ligero con la última tecnología Bluetooth para ofrecerte una experiencia auditiva superior sin enredos de cables. Características Principales: Sonido Estéreo de Alta Fidelidad (Hi-Fi): Disfruta de tu música, podcasts y llamadas con bajos potentes y agudos claros y nítidos. Conectividad Bluetooth 5.2: La última versión de Bluetooth garantiza una conexión más rápida, estable y con menor consumo de energía. Olvídate de los cortes y disfruta de una transmisión fluida. Controles Táctiles Inteligentes: Maneja tu música y tus llamadas con un simple toque. Pausa, reproduce, salta canciones o contesta y cuelga llamadas sin sacar tu teléfono del bolsillo. Estuche de Carga Portátil: El estuche compacto no solo protege tus auriculares, sino que también funciona como una batería portátil, dándote múltiples cargas adicionales para que la música nunca pare. Pantalla LED Digital (Opcional, si tu modelo la tiene): Algunos modelos incluyen una práctica pantalla LED en el estuche que te muestra el porcentaje exacto de batería restante. Micrófonos Integrados: Realiza y recibe llamadas con manos libres y total claridad. Diseño Cómodo y Ligero: Su diseño ergonómico se ajusta perfectamente a tu oído, haciéndolos ideales para largas sesiones de escucha, para ir al gimnasio o para correr. Amplia Compatibilidad: Conéctalos fácilmente con cualquier dispositivo habilitado para Bluetooth, ya sea Android, iOS (iPhone) o Windows. Ideal para: Hacer deporte Viajar en transporte público Jugar videojuegos (baja latencia) Videollamadas y trabajo.");
 
-        List<Especificacion> specsAudifonos = new ArrayList<>(List.of(
-            new Especificacion("Conexión", "Bluetooth 5.2"),
-            new Especificacion("Batería", "40 horas (con ANC apagado)")
-        ));
-        List<Comentario> comentariosAudifonos = new ArrayList<>(List.of(
-            new Comentario("Carla M.", 5, "¡Me encantaron!", "hace 2 días")
-        ));
-
-        audifonos.setEspecificaciones(specsAudifonos);
-        audifonos.setComentarios(comentariosAudifonos);
-        specsAudifonos.forEach(spec -> spec.setProducto(audifonos));
-        comentariosAudifonos.forEach(com -> com.setProducto(audifonos));
-
-        // --- Producto 2: Smartwatch ---
-        Producto smartwatch = new Producto();
-        smartwatch.setNombre("Smartwatch X5");
-        smartwatch.setMarca("VicTec");
-        smartwatch.setPrecio(179990);
-        smartwatch.setPrecioAntiguo(null);
-        smartwatch.setEnOferta(false);
-        smartwatch.setImgUrl("https://i.imgur.com/7H2j3bE.png");
-        smartwatch.setSku("VT-SW-X5-002");
-        smartwatch.setStock(10);
-        smartwatch.setCategoria("Smartwatches");
-        smartwatch.setDescripcion("El Smartwatch X5 es tu compañero de salud...");
-
-        List<Especificacion> specsSmartwatch = new ArrayList<>(List.of(
-            new Especificacion("Pantalla", "1.8\" AMOLED"),
-            new Especificacion("Resistencia al Agua", "5 ATM (Hasta 50m)")
-        ));
-        List<Comentario> comentariosSmartwatch = new ArrayList<>(List.of(
-            new Comentario("Juan Pablo", 5, "Excelente reloj, 10/10.", "hace 5 días")
-        ));
-
-        smartwatch.setEspecificaciones(specsSmartwatch);
-        smartwatch.setComentarios(comentariosSmartwatch);
-        specsSmartwatch.forEach(spec -> spec.setProducto(smartwatch));
-        comentariosSmartwatch.forEach(com -> com.setProducto(smartwatch));
-
-        productoRepository.save(audifonos);
-        productoRepository.save(smartwatch);
+        // Datos de prueba actualizados para que coincidan con la imagen
+        audifonos.setEspecificaciones(new ArrayList<>());
+        audifonos.setComentarios(new ArrayList<>());
         
-        System.out.println(">>> Base de datos poblada con 2 productos de prueba. <<<");
+        productoRepository.save(audifonos);
+        
+        System.out.println(">>> Base de datos poblada con 1 producto de prueba (Mate50). <<<");
     }
 
     // --- Métodos Públicos (Ahora leen de la BD) ---
@@ -95,24 +59,23 @@ public class ProductoService {
         return productoRepository.findById(id);
     }
     
-    /**
-     * Guarda un nuevo producto en la base de datos.
-     */
+    // --- ¡MÉTODO NUEVO AÑADIDO! ---
+    public List<Producto> searchProductos(String query) {
+        // Llama al nuevo método del repositorio
+        return productoRepository.findByNombreContainingIgnoreCase(query);
+    }
+    // --- FIN DEL MÉTODO NUEVO ---
+
     @Transactional
     public Producto saveProducto(Producto producto) {
         
-        // --- ¡INICIO DEL ARREGLO! ---
-        // Si el producto viene del JSON sin listas (null),
-        // creamos listas vacías para evitar errores al leer.
         if (producto.getEspecificaciones() == null) {
             producto.setEspecificaciones(new ArrayList<>());
         }
         if (producto.getComentarios() == null) {
             producto.setComentarios(new ArrayList<>());
         }
-        // --- ¡FIN DEL ARREGLO! ---
 
-        // Asegura que las relaciones (hijos) estén vinculadas al padre
         if (producto.getEspecificaciones() != null) {
             producto.getEspecificaciones().forEach(spec -> spec.setProducto(producto));
         }
@@ -122,9 +85,6 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
-    /**
-     * Actualiza un producto existente.
-     */
     @Transactional
     public Optional<Producto> updateProducto(Long id, Producto productoActualizado) {
         Optional<Producto> productoOpt = productoRepository.findById(id);
@@ -166,9 +126,6 @@ public class ProductoService {
         }
     }
 
-    /**
-     * Elimina un producto por su ID.
-     */
     public boolean deleteProducto(Long id) {
         if (productoRepository.existsById(id)) {
             productoRepository.deleteById(id);

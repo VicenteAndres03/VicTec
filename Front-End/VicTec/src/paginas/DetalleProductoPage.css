@@ -265,6 +265,20 @@
   border-radius: 50px;
 }
 
+/* ... (todo tu CSS anterior) ... */
+
+/* --- Estilo para la nota de envío --- */
+.detalle-envio-info {
+  font-size: 0.9rem;
+  color: #444;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  line-height: 1.6;
+}
+
 /* --- Responsive para Móvil --- */
 @media (max-width: 900px) {
   .detalle-layout {

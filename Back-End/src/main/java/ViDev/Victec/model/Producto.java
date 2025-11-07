@@ -1,14 +1,12 @@
 package ViDev.Victec.model;
 
-// 1. IMPORTA ESTAS DOS CLASES
 import jakarta.persistence.Column;
 import jakarta.persistence.Lob;
-
-// 2. IMPORTA ArrayList
 import java.util.ArrayList; 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+// 1. --- IMPORTAR JsonManagedReference ---
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,14 +38,16 @@ public class Producto {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    // 3. ¡AQUÍ ESTÁ EL ARREGLO!
-    // Inicializa las listas para que nunca sean 'null'.
-    @JsonIgnore
+    // 2. --- ¡AQUÍ ESTÁ EL ARREGLO! ---
+    // Le decimos a Jackson que este es el "lado principal" de la relación.
+    // Esto rompe el bucle infinito.
+    
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // <-- AÑADIDO
     private List<Especificacion> especificaciones = new ArrayList<>();
 
-    @JsonIgnore
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // <-- AÑADIDO
     private List<Comentario> comentarios = new ArrayList<>();
 
     // --- Getters y Setters (Sin cambios) ---

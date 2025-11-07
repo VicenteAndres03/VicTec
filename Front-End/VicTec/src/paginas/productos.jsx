@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+// 1. --- IMPORTAR useSearchParams ---
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; 
 import './productos.css';
 
-// --- Sub-componente para los Filtros ---
 function ProductFilters() {
+  // ... (este componente se queda igual) ...
   const [activeFilter, setActiveFilter] = useState('todos');
-
   return (
     <nav className="filter-bar-container">
       <ul className="filter-list">
@@ -25,24 +26,38 @@ function ProductFilters() {
             Audífonos
           </button>
         </li>
-        {/* ... (otros filtros) ... */}
       </ul>
     </nav>
   );
 }
 
-
-// --- Componente Principal de la Página ---
 function ProductosPage() {
   const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { getAuthHeader, isAuthenticated } = useAuth();
+  
+  // 2. --- LEER LOS PARÁMETROS DE LA URL ---
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get('q'); // 'q' es el nombre que definimos en el header
 
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/v1/productos');
+        setLoading(true);
+        setError(null);
+        
+        // 3. --- CREAR LA URL DINÁMICA ---
+        let url = '/api/v1/productos';
+        if (query) {
+          // Si hay una búsqueda, añade el parámetro
+          url = `/api/v1/productos?q=${encodeURIComponent(query)}`;
+        }
+        
+        // 4. --- USAR LA URL DINÁMICA ---
+        const response = await fetch(url);
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -56,14 +71,35 @@ function ProductosPage() {
     };
 
     fetchProductos();
-  }, []); // El array vacío asegura que se ejecute solo una vez
+  // 5. --- AÑADIR 'query' A LAS DEPENDENCIAS ---
+  // Esto hace que la página se recargue si la búsqueda cambia
+  }, [query]); 
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = async (e, productoId) => {
+    // ... (esta función se queda igual que la que arreglamos antes) ...
     e.preventDefault(); 
     e.stopPropagation(); 
-
-    console.log("Producto añadido (simulación)... Redirigiendo al carrito.");
-    navigate('/carrito');
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await fetch('/api/v1/carrito/add', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify({
+          productoId: productoId,
+          cantidad: 1
+        })
+      });
+      if (!response.ok) {
+        throw new Error('Error al añadir al carrito');
+      }
+      navigate('/carrito');
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   if (loading) {
@@ -77,18 +113,29 @@ function ProductosPage() {
   return (
     <main className="productos-container">
       
-      <h1 className="productos-title">Nuestros Productos</h1>
+      {/* 6. --- TÍTULO DINÁMICO --- */}
+      {query ? (
+        <h1 className="productos-title">Resultados para: "{query}"</h1>
+      ) : (
+        <h1 className="productos-title">Nuestros Productos</h1>
+      )}
+      
       <ProductFilters />
 
       <div className="productos-grid">
         
+        {/* 7. --- MENSAJE SI NO HAY RESULTADOS --- */}
+        {!loading && productos.length === 0 && (
+          <p>No se encontraron productos que coincidan con tu búsqueda.</p>
+        )}
+        
         {productos.map((producto) => (
-          
           <Link 
             to={`/productos/${producto.id}`} 
             className="product-card" 
             key={producto.id}
           >
+            {/* ... (el resto del card se queda igual) ... */}
             <div className="product-image-box">
               <img src={producto.imgUrl} alt={producto.nombre} className="product-image-real" />
               {producto.enOferta && <span className="sale-tag">Sale</span>}
@@ -110,7 +157,7 @@ function ProductosPage() {
               
               <button 
                 className="product-add-to-cart-button"
-                onClick={handleAddToCart}
+                onClick={(e) => handleAddToCart(e, producto.id)}
               >
                 Añadir al Carrito
               </button>

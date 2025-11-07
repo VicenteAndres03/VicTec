@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from '../context/AuthContext'; // 1. Importa el hook
+// 1. --- IMPORTAR useNavigate ---
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
 import "./header.css";
 import logo from "../assets/Circulo.png";
 
@@ -8,8 +9,22 @@ function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
-  // 2. Lee el estado de autenticación del contexto
+  // 2. --- ESTADO PARA LA BÚSQUEDA ---
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate(); // Hook para redirigir
+  
   const { isAuthenticated, user, logout } = useAuth();
+
+  // 3. --- FUNCIÓN PARA MANEJAR LA BÚSQUEDA ---
+  const handleSearchSubmit = (e) => {
+    e.preventDefault(); // Evita que la página se recargue
+    if (searchTerm.trim()) {
+      // Redirige a la página de productos con el parámetro de búsqueda
+      navigate(`/productos?q=${encodeURIComponent(searchTerm.trim())}`);
+      // Opcional: limpiar la barra de búsqueda después
+      // setSearchTerm(""); 
+    }
+  };
 
   return (
     <header className="main-header">
@@ -25,23 +40,39 @@ function Header() {
             <li><Link to="/productos">Productos</Link></li>
             <li><Link to="/soporte">Soporte</Link></li>
             <li><Link to="/blog">Blog</Link></li>
+            
+            {/* 4. --- FORMULARIO DE BÚSQUEDA (MÓVIL) --- */}
             <li className="nav-search-bar">
-              <input type="text" placeholder="Buscar productos..." />
-              <button type="submit">🔍</button>
+              <form onSubmit={handleSearchSubmit}>
+                <input 
+                  type="text" 
+                  placeholder="Buscar productos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button type="submit">🔍</button>
+              </form>
             </li>
           </ul>
         </nav>
 
         <div className="header-actions">
-          <div className="search-bar">
-            <input type="text" placeholder="Buscar productos..." />
+          
+          {/* 5. --- FORMULARIO DE BÚSQUEDA (ESCRITORIO) --- */}
+          <form className="search-bar" onSubmit={handleSearchSubmit}>
+            <input 
+              type="text" 
+              placeholder="Buscar productos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <button type="submit">🔍</button>
-          </div>
-
+          </form>
+          
+          {/* ... (resto del header sin cambios) ... */}
           <div className="user-icons">
             <div className="user-menu">
               <span className="icon-link user-icon-trigger" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
-                {/* 3. Muestra el ícono o las iniciales del usuario */}
                 {isAuthenticated ? (
                   <div className="user-initials">{ (user.nombre && user.nombre.charAt(0)) || (user.email && user.email.charAt(0)) || 'U' }</div>
                 ) : (
@@ -49,7 +80,6 @@ function Header() {
                 )}
               </span>
               
-              {/* 4. Cambia el menú dinámicamente */}
               <div className={`user-dropdown ${isUserMenuOpen ? "open" : ""}`}>
                 {isAuthenticated ? (
                   <>

@@ -1,19 +1,16 @@
 package ViDev.Victec.repository;
 
-import ViDev.Victec.model.Producto; // Importa tu modelo
+import ViDev.Victec.model.Producto; 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.List; // 1. IMPORTAR LIST
 
-@Repository // Le dice a Spring que esta es una interfaz de repositorio
+@Repository 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
     
-    // JpaRepository<Producto, Long> significa:
-    // "Quiero administrar la entidad 'Producto', y su Llave Primaria (ID) es de tipo 'Long'".
+    // ... (tus métodos findById, findAll, etc., ya existen) ...
 
-    // ¡Y eso es todo! Con solo esto, Spring te da automáticamente:
-    // - findAll() (Obtener todos los productos)
-    // - findById(Long id) (Buscar uno por ID)
-    // - save(Producto producto) (Guardar o actualizar un producto)
-    // - deleteById(Long id) (Borrar un producto)
-    // ...¡y muchos más sin escribir una línea de SQL!
+    // 2. --- MÉTODO AÑADIDO ---
+    // Esto busca productos donde el 'nombre' contenga el texto de la consulta
+    List<Producto> findByNombreContainingIgnoreCase(String nombre);
 }

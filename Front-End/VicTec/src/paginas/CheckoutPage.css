@@ -158,6 +158,29 @@
   color: #222;
 }
 
+/* ... (todo tu CSS anterior) ... */
+
+/* --- Estilo para la nota de envío en el resumen --- */
+.summary-row-nota {
+  font-size: 0.85rem;
+  color: #555;
+  text-align: center;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: -0.5rem 0 1rem 0; /* Ajuste de espacio */
+}
+
+/* ... (todo tu CSS anterior) ... */
+
+/* Estilo para la opción de pago seleccionada por defecto */
+.payment-option.selected {
+  background-color: #f0f0f0;
+  border-color: var(--color-primario);
+  cursor: default;
+}
+
 /* --- Responsive --- */
 @media (max-width: 900px) {
   .checkout-layout {

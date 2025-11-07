@@ -1,5 +1,7 @@
 package ViDev.Victec.model;
 
+// 1. --- IMPORTAR JsonIgnore ---
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -15,10 +17,14 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 2. --- AÑADIR @JsonIgnore AQUÍ ---
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    // 3. --- AÑADIR @JsonIgnore AQUÍ ---
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "direccion_id", nullable = false)
     private Direccion direccionEnvio;
@@ -37,7 +43,7 @@ public class Pedido {
     @JsonManagedReference
     private Set<PedidoItem> items = new HashSet<>();
 
-    // Getters y Setters
+    // Getters y Setters (No cambian)
 
     public Long getId() {
         return id;

@@ -2,12 +2,10 @@ package ViDev.Victec.service;
 
 import ViDev.Victec.model.*;
 import ViDev.Victec.repository.*;
-// --- INICIO DE IMPORTACIONES AÑADIDAS ---
 import ViDev.Victec.service.PaymentService;
-import com.mercadopago.resources.preference.Preference;
-import com.mercadopago.exceptions.MPException;
 import com.mercadopago.exceptions.MPApiException;
-// --- FIN DE IMPORTACIONES AÑADIDAS ---
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.preference.Preference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-@Transactional // Movido a nivel de clase
+@Transactional 
 public class PedidoService {
 
     @Autowired
@@ -40,12 +38,12 @@ public class PedidoService {
     @Autowired
     private PedidoItemRepository pedidoItemRepository;
 
-    // --- INYECCIÓN AÑADIDA ---
     @Autowired
     private PaymentService paymentService;
 
-    @Transactional // Mantenemos transaccional el método original
-    public Pedido crearPedidoDesdeCarrito(Long usuarioId, Long direccionId) {
+    // ... (El método finalizarCompra se queda igual) ...
+    @Transactional(rollbackFor = RuntimeException.class)
+    public Pedido finalizarCompra(Long usuarioId, Long direccionId) {
         Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         Carrito carrito = carritoRepository.findByUsuarioId(usuarioId).orElseThrow(() -> new RuntimeException("Carrito no encontrado o está vacío"));
         Direccion direccion = direccionRepository.findById(direccionId).orElseThrow(() -> new RuntimeException("Dirección no encontrada"));
@@ -62,7 +60,7 @@ public class PedidoService {
         pedido.setUsuario(usuario);
         pedido.setDireccionEnvio(direccion);
         pedido.setFechaPedido(LocalDateTime.now());
-        pedido.setEstado(EstadoPedido.PENDIENTE);
+        pedido.setEstado(EstadoPedido.PROCESANDO); 
         
         pedido.setTotal(BigDecimal.ZERO);
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
@@ -73,7 +71,6 @@ public class PedidoService {
         for (CarritoItem carritoItem : carrito.getItems()) {
             Producto producto = carritoItem.getProducto();
             if (producto.getStock() < carritoItem.getCantidad()) {
-                // Si falla aquí, la transacción hará rollback
                 throw new RuntimeException("No hay suficiente stock para el producto: " + producto.getNombre());
             }
 
@@ -89,7 +86,6 @@ public class PedidoService {
 
             total = total.add(pedidoItem.getPrecio().multiply(BigDecimal.valueOf(carritoItem.getCantidad())));
 
-            // Actualizar stock
             producto.setStock(producto.getStock() - carritoItem.getCantidad());
             productoRepository.save(producto);
         }
@@ -98,16 +94,18 @@ public class PedidoService {
         pedidoGuardado.setTotal(total);
         Pedido pedidoFinal = pedidoRepository.save(pedidoGuardado);
 
-        // Limpiar carrito
         carrito.getItems().clear();
         carritoRepository.save(carrito);
 
         return pedidoFinal; 
     }
 
+    // --- AQUÍ ESTÁ EL CAMBIO ---
     public List<Pedido> getPedidosPorUsuario(Long usuarioId) {
-        return pedidoRepository.findByUsuarioId(usuarioId);
+        // Ahora llamamos al nuevo método que carga todo
+        return pedidoRepository.findByUsuarioIdWithItemsAndProducts(usuarioId);
     }
+    // --- FIN DEL CAMBIO ---
 
     public Pedido getPedidoById(Long pedidoId, Long usuarioId) {
         Pedido pedido = pedidoRepository.findById(pedidoId).orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
@@ -117,40 +115,16 @@ public class PedidoService {
         return pedido;
     }
 
-    // --- INICIO DEL NUEVO MÉTODO ---
-    /**
-     * Operación atómica:
-     * 1. Crea el Pedido (reduce stock, limpia carrito).
-     * 2. Crea la Preferencia de Pago en MercadoPago.
-     * Si el paso 2 falla, la transacción completa (incluyendo el paso 1) se revierte.
-     */
-    @Transactional(rollbackFor = {MPException.class, MPApiException.class, RuntimeException.class})
-    public Preference crearPedidoYPreferencia(Long usuarioId, Long direccionId) 
+    @Transactional(readOnly = true) 
+    public Preference crearPreferenciaDePago(Long usuarioId, Long direccionId) 
             throws MPException, MPApiException, RuntimeException {
         
-        // 1. Llama a tu lógica existente para crear el pedido
-        //    (Esto reduce el stock y limpia el carrito)
-        Pedido pedidoGuardado = crearPedidoDesdeCarrito(usuarioId, direccionId);
+        Carrito carrito = carritoRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
 
-        // 2. Carga el pedido con sus items para MercadoPago
-        //    Es necesario porque la sesión de 'pedidoGuardado' podría estar cerrada
-        Pedido pedidoCompleto = pedidoRepository.findByIdWithItems(pedidoGuardado.getId())
-                .orElseThrow(() -> new RuntimeException("Error al recargar el pedido para el pago"));
-        
-        // 3. Intenta crear la preferencia de pago
-        try {
-            Preference preference = paymentService.createPreference(pedidoCompleto);
-            if (preference == null || preference.getInitPoint() == null) {
-                // Forzamos un rollback si MercadoPago no da una URL
-                throw new RuntimeException("No se pudo crear la preferencia de pago (init_point nulo)");
-            }
-            // Si todo OK, la transacción hace commit y devuelve la preferencia
-            return preference;
-        } catch (MPException | MPApiException | RuntimeException e) {
-            // Si esto falla, @Transactional se encargará de revertir todo
-            // (incluyendo la reducción de stock y la creación del pedido)
-            throw e; 
+        if (carrito.getItems() == null || carrito.getItems().isEmpty()) {
+            throw new RuntimeException("El carrito está vacío");
         }
+        return paymentService.createPreference(carrito, direccionId);
     }
-    // --- FIN DEL NUEVO MÉTODO ---
 }

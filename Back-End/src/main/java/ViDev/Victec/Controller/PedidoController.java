@@ -4,12 +4,10 @@ import ViDev.Victec.model.Pedido;
 import ViDev.Victec.model.Usuario;
 import ViDev.Victec.repository.UsuarioRepository;
 import ViDev.Victec.service.PedidoService;
-// --- INICIO DE IMPORTACIONES AÑADIDAS ---
 import com.mercadopago.resources.preference.Preference;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.exceptions.MPApiException;
 import org.springframework.http.HttpStatus;
-// --- FIN DE IMPORTACIONES AÑADIDAS ---
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,17 +35,19 @@ public class PedidoController {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
-    // --- INICIO DEL NUEVO ENDPOINT ---
+    /**
+     * Endpoint unificado para crear la preferencia de pago.
+     * Llama al PedidoService para manejar la lógica transaccional.
+     */
     @PostMapping("/crear-y-pagar")
     public ResponseEntity<?> crearPedidoYPreferencia(@RequestBody Map<String, Long> payload) {
         Long direccionId = payload.get("direccionId");
         Usuario currentUser = getCurrentUser();
 
         try {
-            // Llama al nuevo método atómico del servicio
-            Preference preference = pedidoService.crearPedidoYPreferencia(currentUser.getId(), direccionId);
+            // Llama al servicio, que ahora es transaccional y maneja la lógica
+            Preference preference = pedidoService.crearPreferenciaDePago(currentUser.getId(), direccionId);
             
-            // Si todo sale bien, devolvemos solo lo que el frontend necesita
             Map<String, String> response = Map.of(
                 "preferenceId", preference.getId(),
                 "init_point", preference.getInitPoint()
@@ -64,28 +64,22 @@ public class PedidoController {
                 .body(Map.of("error", "Error de MercadoPago: " + e.getMessage()));
         } catch (RuntimeException e) {
             e.printStackTrace();
-            // Esto capturará errores como "Stock insuficiente" o "Carrito vacío"
-            // Gracias al @Transactional, el stock no se habrá descontado.
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-    // --- FIN DEL NUEVO ENDPOINT ---
 
-    @PostMapping("/crear")
-    public ResponseEntity<Pedido> crearPedido(@RequestBody Map<String, Long> payload) {
-        // Este endpoint ahora solo se usa para "Transferencia Bancaria"
-        Long direccionId = payload.get("direccionId");
-        Usuario currentUser = getCurrentUser();
-        Pedido pedido = pedidoService.crearPedidoDesdeCarrito(currentUser.getId(), direccionId);
-        return ResponseEntity.ok(pedido);
-    }
-
+    /**
+     * Endpoint para obtener todos los pedidos del usuario autenticado.
+     */
     @GetMapping
     public ResponseEntity<List<Pedido>> getPedidos() {
         Usuario currentUser = getCurrentUser();
         return ResponseEntity.ok(pedidoService.getPedidosPorUsuario(currentUser.getId()));
     }
 
+    /**
+     * Endpoint para obtener un pedido específico por ID.
+     */
     @GetMapping("/{pedidoId}")
     public ResponseEntity<Pedido> getPedidoById(@PathVariable Long pedidoId) {
         Usuario currentUser = getCurrentUser();

@@ -3,11 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './CheckoutPage.css';
 
+const calcularEnvio = (subtotal) => {
+  if (subtotal === 0) return 0;
+  if (subtotal >= 50000) return 0;
+  if (subtotal >= 25000) return 1990;
+  return 3500;
+};
+
 function CheckoutPage() {
   const navigate = useNavigate();
   const { getAuthHeader, isAuthenticated, user, isTokenValid, logout, loadingAuth } = useAuth();
 
-  // Estados para el carrito
   const [cartItems, setCartItems] = useState([]);
   const [loadingCart, setLoadingCart] = useState(true);
   const [cartError, setCartError] = useState(null);
@@ -21,7 +27,8 @@ function CheckoutPage() {
     region: '',
     codigoPostal: '',
     telefono: '',
-    metodoPago: 'webpay',
+    // 1. --- MODIFICACIÓN ---
+    // 'metodoPago' siempre será 'webpay' y no necesita 'onChange'
   });
 
   const [status, setStatus] = useState('idle');
@@ -32,71 +39,44 @@ function CheckoutPage() {
       const params = new URLSearchParams(window.location.search);
       const paymentId = params.get('payment_id');
       const paymentStatus = params.get('status');
-      const collectionStatus = params.get('collection_status'); // Another common parameter
+      const collectionStatus = params.get('collection_status'); 
 
-      // Only check for cancellation if we have some indication we are coming back from payment
       if (params.has('collection_id') || params.has('payment_id')) {
         if (paymentStatus === 'null' || paymentStatus === 'rejected' || collectionStatus === 'rejected') {
-          // User cancelled or payment failed, redirect to cart
           navigate('/carrito');
         }
       }
     };
-
     checkPaymentStatus();
   }, [navigate]);
 
-  // Efecto para cargar el carrito
   useEffect(() => {
-    console.log('=== VERIFICACIÓN INICIAL CHECKOUT ===');
-    
-    if (loadingAuth) {
-      console.log('AuthContext está cargando, esperando...');
-      return; 
-    }
-    
+    if (loadingAuth) return;
     if (!isTokenValid()) { 
-      console.log('Token no válido o expirado, redirigiendo a login');
       navigate('/login', { replace: true });
       return;
     }
-    
     if (!isAuthenticated) {
-      console.log('Usuario no autenticado (post-validación), redirigiendo a login');
       navigate('/login', { replace: true });
       return;
     }
-
     const fetchCarrito = async () => {
       try {
         setLoadingCart(true);
         setCartError(null);
-        
         const headers = getAuthHeader();
-        console.log('=== CARGANDO CARRITO ===');
-        
-        const response = await fetch('/api/v1/carrito', {
-          headers: headers,
-        });
-
-        console.log('Respuesta del carrito:', response.status, response.statusText);
-
+        const response = await fetch('/api/v1/carrito', { headers: headers });
         if (response.status === 401 || response.status === 403) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('Error de autorización al cargar carrito:', errorData);
           setCartError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-          
           logout();
           navigate('/login', { replace: true });
           return;
         }
-
         if (response.status === 404) {
           setCartItems([]);
           setLoadingCart(false);
           return;
         }
-        
         if (!response.ok) {
           let errorMessage = 'Error al cargar el carrito';
           try {
@@ -108,26 +88,22 @@ function CheckoutPage() {
           }
           throw new Error(errorMessage);
         }
-        
         const data = await response.json();
-        console.log('Carrito cargado:', data);
         setCartItems(data.items || []);
-        
         if (user && user.email) {
           setFormData(prev => ({ ...prev, email: user.email }));
         }
       } catch (err) {
-        console.error('Error al cargar carrito:', err);
         setCartError(err.message || 'Error al cargar el carrito');
       } finally {
         setLoadingCart(false);
       }
     };
-
     fetchCarrito();
-    
   }, [isAuthenticated, getAuthHeader, navigate, user, isTokenValid, logout, loadingAuth]);
 
+  // 2. --- MODIFICACIÓN ---
+  // Ya no necesitamos 'handleChange' para el método de pago
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -136,28 +112,21 @@ function CheckoutPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('=== INICIANDO CHECKOUT ===');
-    
     if (!isTokenValid()) {
       setError('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
       setStatus('error');
-      setTimeout(() => {
-        navigate('/login', { replace: true });
-      }, 2000);
+      setTimeout(() => navigate('/login', { replace: true }), 2000);
       return;
     }
-
     if (cartItems.length === 0) {
       setError('Tu carrito está vacío');
       setStatus('error');
       return;
     }
-
     setStatus('submitting');
     setError(null);
 
     try {
-      console.log('1. Creando dirección...');
       const direccionResponse = await fetch('/api/v1/direcciones', {
         method: 'POST',
         headers: getAuthHeader(),
@@ -176,29 +145,10 @@ function CheckoutPage() {
       }
       
       const direccionData = await direccionResponse.json();
-      console.log('Dirección creada:', direccionData);
 
-      
-      if (formData.metodoPago === 'transferencia') {
-        console.log('2. Creando pedido (solo transferencia)...');
-        const pedidoResponse = await fetch('/api/v1/pedidos/crear', {
-          method: 'POST',
-          headers: getAuthHeader(),
-          body: JSON.stringify({ direccionId: direccionData.id }),
-        });
-        
-        if (!pedidoResponse.ok) {
-          const errorData = await pedidoResponse.json().catch(() => ({ error: 'Error al crear el pedido' }));
-          throw new Error(errorData.error || 'Error al crear el pedido');
-        }
-        
-        console.log('Pedido creado:', await pedidoResponse.json());
-        setStatus('success');
-        navigate('/compra-exitosa', { replace: true }); 
-        return; 
-      }
-
-      console.log('2. Creando pedido Y preferencia de pago (Webpay)...');
+      // 3. --- MODIFICACIÓN ---
+      // Eliminamos el 'if (formData.metodoPago === 'transferencia')'
+      // Ahora siempre va a Mercado Pago
       
       const authHeaders = getAuthHeader();
       if (!authHeaders.Authorization) {
@@ -211,44 +161,27 @@ function CheckoutPage() {
         body: JSON.stringify({ direccionId: direccionData.id }),
       });
       
-      console.log('=== RESPUESTA DE CREAR-Y-PAGAR ===');
-      console.log('Status:', response.status);
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Error al procesar el pedido' }));
-        console.error('Error en crear-y-pagar:', errorData);
-        
         if (response.status === 401 || response.status === 403) {
           throw new Error('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
         }
-        
         throw new Error(errorData.error || 'Error al crear el pedido y la preferencia de pago');
       }
       
       const preferenceData = await response.json();
-      console.log('Preferencia creada:', preferenceData);
       
       if (!preferenceData.init_point) {
         throw new Error('No se recibió la URL de pago de Mercado Pago');
       }
 
-      console.log('3. Estableciendo bandera de pago...');
       sessionStorage.setItem('leavingForPayment', 'true');
       
-      // Verificar que se guardó
-      const verificar = sessionStorage.getItem('leavingForPayment');
-      console.log('Bandera guardada:', verificar);
-      
-      console.log('4. Redirigiendo a Mercado Pago en 100ms...');
-      
-      // Dar un pequeño delay para asegurar que sessionStorage se guarde
       setTimeout(() => {
         window.location.href = preferenceData.init_point;
       }, 100);
 
     } catch (err) {
-      console.error('=== ERROR EN CHECKOUT ===');
-      console.error('Mensaje:', err.message);
       setStatus('error');
       setError(err.message || 'Ocurrió un error al procesar el pago');
       
@@ -261,21 +194,17 @@ function CheckoutPage() {
     }
   };
 
-  // Calcular totales desde el carrito real
   const subtotal = cartItems.reduce((acc, item) => {
     if (!item || !item.producto || !item.producto.precio) return acc;
     return acc + item.producto.precio * item.cantidad;
   }, 0);
-  const envio = subtotal > 0 ? 3500 : 0;
+  const envio = calcularEnvio(subtotal);
   const totalPedido = subtotal + envio;
   
-  // Mostrar carga mientras el AuthContext se inicializa
   if (loadingAuth || loadingCart) {
     return (
       <main className="checkout-container">
-        <div className="checkout-loading">
-          <p>Cargando...</p>
-        </div>
+        <div className="checkout-loading"><p>Cargando...</p></div>
       </main>
     );
   }
@@ -285,10 +214,7 @@ function CheckoutPage() {
       {cartError ? (
         <div className="checkout-error">
           <p style={{ color: 'red', fontSize: '1.1rem', fontWeight: 'bold' }}>Error: {cartError}</p>
-          <button 
-            onClick={() => navigate('/login')} 
-            style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}
-          >
+          <button onClick={() => navigate('/login')} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer' }}>
             Ir a Iniciar Sesión
           </button>
         </div>
@@ -313,7 +239,8 @@ function CheckoutPage() {
                   <strong>Procesando...</strong> Por favor espere mientras procesamos su pedido.
                 </div>
               )}
-
+            
+            {/* ... (Formulario de contacto y dirección sin cambios) ... */}
             <div className="form-section">
               <h2>Información de Contacto</h2>
               <div className="form-group">
@@ -321,9 +248,9 @@ function CheckoutPage() {
                 <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
               </div>
             </div>
-
             <div className="form-section">
               <h2>Dirección de Envío</h2>
+              {/* ... (campos de dirección sin cambios) ... */}
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="nombre">Nombre</label>
@@ -363,23 +290,25 @@ function CheckoutPage() {
             <div className="form-section">
               <h2>Método de Pago</h2>
               <div className="payment-options">
-                <label className="payment-option">
-                  <input type="radio" name="metodoPago" value="webpay" checked={formData.metodoPago === 'webpay'} onChange={handleChange} />
+                {/* 4. --- MODIFICACIÓN --- */}
+                {/* Dejamos solo la opción de Webpay, y la marcamos como seleccionada y deshabilitada */}
+                <label className="payment-option selected">
+                  <input type="radio" name="metodoPago" value="webpay" checked={true} readOnly />
                   Webpay / MercadoPago (Crédito/Débito)
                 </label>
-                <label className="payment-option">
-                  <input type="radio" name="metodoPago" value="transferencia" checked={formData.metodoPago === 'transferencia'} onChange={handleChange} />
-                  Transferencia Bancaria
-                </label>
+                {/* La opción de transferencia se elimina */}
               </div>
             </div>
 
+            {/* 5. --- MODIFICACIÓN --- */}
+            {/* El texto del botón ahora es siempre "Ir a Pagar" */}
             <button type="submit" className="checkout-submit-button" disabled={status === 'submitting'}>
-              {status === 'submitting' ? 'Procesando...' : (formData.metodoPago === 'transferencia' ? 'Finalizar Pedido' : 'Ir a Pagar')}
+              {status === 'submitting' ? 'Procesando...' : 'Ir a Pagar'}
             </button>
           </form>
         </div>
 
+        {/* ... (Resumen del pedido sin cambios) ... */}
         <div className="checkout-summary-section">
           <div className="checkout-summary">
             <h3>Resumen del Pedido</h3>
@@ -389,7 +318,10 @@ function CheckoutPage() {
             </div>
             <div className="summary-row">
               <span>Envío</span>
-              <span>CLP${envio.toLocaleString('es-CL')}</span>
+              <span>{envio === 0 ? 'Gratis' : `CLP$${envio.toLocaleString('es-CL')}`}</span>
+            </div>
+            <div className="summary-row-nota">
+              <span>🚚 Envío internacional. Estimación: 15-30 días hábiles.</span>
             </div>
             <div className="summary-divider"></div>
             <div className="summary-row total">
@@ -398,7 +330,6 @@ function CheckoutPage() {
             </div>
           </div>
         </div>
-
       </div>
       )}
     </main>

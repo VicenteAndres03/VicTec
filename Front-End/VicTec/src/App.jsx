@@ -8,7 +8,6 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Verificar si estamos volviendo de un pago
   useEffect(() => {
     console.log('=== APP - Verificando retorno de pago ===');
     console.log('Ruta actual:', location.pathname);
@@ -19,18 +18,20 @@ function App() {
     if (isReturningFromPayment === 'true') {
       console.log('¡Detectado retorno de pago! Redirigiendo al carrito...');
       sessionStorage.removeItem('leavingForPayment');
-      
-      // Redirigir al carrito sin importar en qué ruta estemos
       navigate('/carrito', { replace: true });
     }
   }, [location.pathname, navigate]);
 
   return (
-    <div className="app">
+    // 1. Cambiado de "app" a "App" (con 'A' mayúscula)
+    <div className="App"> 
       <Header />
-      <main className="main-content">
+      
+      {/* 2. Cambiado de "main-content" a "app-content" */}
+      <main className="app-content">
         <Outlet />
       </main>
+      
       <Footer />
     </div>
   );

@@ -1,17 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './CompraExitosaPage.css'; // Crearemos este CSS
+import './CompraExitosaPage.css'; 
 
 function CompraExitosaPage() {
   
-  // En el futuro, este ID vendrá del backend
+  // (En el futuro, este ID vendrá del backend)
   const numeroDeOrden = 'VT-1004'; 
 
   return (
     <main className="compra-exitosa-container">
       <div className="compra-exitosa-box">
         
-        {/* Animación del Check */}
         <div className="icono-check-animado">
           <svg className="check-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
             <circle className="check-circulo" cx="26" cy="26" r="25" fill="none"/>
@@ -26,9 +25,14 @@ function CompraExitosaPage() {
         <p className="compra-exitosa-orden">
           Tu número de orden es: <strong>{numeroDeOrden}</strong>
         </p>
+        
+        {/* --- TEXTO MODIFICADO --- */}
         <p className="compra-exitosa-info">
-          Recibirás un email de confirmación (simulado) con los detalles de tu pedido y el seguimiento del envío.
+          Recibirás un email de confirmación con los detalles de tu pedido.
+          <br/><br/>
+          <strong>Recordatorio:</strong> Dado que es un envío internacional, el tiempo de entrega estimado es de 15 a 30 días hábiles.
         </p>
+        {/* --- FIN DE LA MODIFICACIÓN --- */}
 
         <div className="compra-exitosa-botones">
           <Link to="/" className="boton-secundario">
