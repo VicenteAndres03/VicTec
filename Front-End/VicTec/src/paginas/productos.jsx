@@ -35,7 +35,7 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
             // Usamos el valor real del Backend ('Audio')
             onClick={() => handleFilterClick('Audio')}
           >
-            Audífonos
+            Audio
           </button>
         </li>
 
