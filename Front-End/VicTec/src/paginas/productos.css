@@ -17,47 +17,7 @@
 }
 
 /* --- (NUEVO) Barra de Búsqueda de Productos --- */
-.productos-search-bar {
-  display: flex;
-  width: 100%;
-  max-width: 700px; /* Ancho centrado */
-  margin: 0 auto 2.5rem auto; /* Centrada y con espacio abajo */
-  border: 1px solid #ddd;
-  border-radius: 50px; /* Bordes redondeados */
-  overflow: hidden;
-  background-color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.productos-search-bar input {
-  flex-grow: 1;
-  border: none;
-  outline: none;
-  padding: 0.9rem 1.5rem; /* Más padding vertical */
-  font-size: 1rem;
-  font-family: inherit;
-  color: #333;
-}
-
-.productos-search-bar input::placeholder {
-  color: #999;
-}
-
-.productos-search-bar button {
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  background-color: var(--color-primario); /* Verde */
-  color: #000;
-  border: none;
-  padding: 0 2rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.productos-search-bar button:hover {
-  background-color: #00ff9d; /* Verde más claro */
-}
+/* --- ¡BLOQUE CSS ELIMINADO! --- */
 
 
 /* --- Estilos del Filtro de Productos --- */

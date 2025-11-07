@@ -29,18 +29,17 @@ public class ProductoService {
 
         // --- Producto 1: Auriculares ---
         Producto audifonos = new Producto();
-        audifonos.setNombre("Auriculares TWS Modelo Mate50"); // <-- Nombre actualizado
-        audifonos.setMarca("XIAOMI"); // <-- Marca actualizada
-        audifonos.setPrecio(12000); // <-- Precio actualizado
-        audifonos.setPrecioAntiguo(null); // <-- Sin precio antiguo
-        audifonos.setEnOferta(false); // <-- No en oferta
-        audifonos.setImgUrl("https://i.imgur.com/333A19a.png"); // <-- URL de imagen actualizada
+        audifonos.setNombre("Auriculares TWS Modelo Mate50"); 
+        audifonos.setMarca("XIAOMI"); 
+        audifonos.setPrecio(12000); 
+        audifonos.setPrecioAntiguo(null); 
+        audifonos.setEnOferta(false); 
+        audifonos.setImgUrl("https://i.imgur.com/333A19a.png"); 
         audifonos.setSku("XI-TWS-M50-001");
         audifonos.setStock(84);
-        audifonos.setCategoria("Audio");
+        audifonos.setCategoria("Audio"); // <-- Categoría importante para el filtro
         audifonos.setDescripcion("Descubre la libertad del verdadero sonido inalámbrico con los auriculares TWS Mate50. Diseñados para tu estilo de vida activo, estos auriculares combinan un diseño ergonómico y ligero con la última tecnología Bluetooth para ofrecerte una experiencia auditiva superior sin enredos de cables. Características Principales: Sonido Estéreo de Alta Fidelidad (Hi-Fi): Disfruta de tu música, podcasts y llamadas con bajos potentes y agudos claros y nítidos. Conectividad Bluetooth 5.2: La última versión de Bluetooth garantiza una conexión más rápida, estable y con menor consumo de energía. Olvídate de los cortes y disfruta de una transmisión fluida. Controles Táctiles Inteligentes: Maneja tu música y tus llamadas con un simple toque. Pausa, reproduce, salta canciones o contesta y cuelga llamadas sin sacar tu teléfono del bolsillo. Estuche de Carga Portátil: El estuche compacto no solo protege tus auriculares, sino que también funciona como una batería portátil, dándote múltiples cargas adicionales para que la música nunca pare. Pantalla LED Digital (Opcional, si tu modelo la tiene): Algunos modelos incluyen una práctica pantalla LED en el estuche que te muestra el porcentaje exacto de batería restante. Micrófonos Integrados: Realiza y recibe llamadas con manos libres y total claridad. Diseño Cómodo y Ligero: Su diseño ergonómico se ajusta perfectamente a tu oído, haciéndolos ideales para largas sesiones de escucha, para ir al gimnasio o para correr. Amplia Compatibilidad: Conéctalos fácilmente con cualquier dispositivo habilitado para Bluetooth, ya sea Android, iOS (iPhone) o Windows. Ideal para: Hacer deporte Viajar en transporte público Jugar videojuegos (baja latencia) Videollamadas y trabajo.");
 
-        // Datos de prueba actualizados para que coincidan con la imagen
         audifonos.setEspecificaciones(new ArrayList<>());
         audifonos.setComentarios(new ArrayList<>());
         
@@ -59,10 +58,13 @@ public class ProductoService {
         return productoRepository.findById(id);
     }
     
+    // --- MÉTODO ANTIGUO ELIMINADO ---
+    // public List<Producto> searchProductos(String query) { ... }
+    
     // --- ¡MÉTODO NUEVO AÑADIDO! ---
-    public List<Producto> searchProductos(String query) {
+    public List<Producto> getProductosByCategoria(String categoria) {
         // Llama al nuevo método del repositorio
-        return productoRepository.findByNombreContainingIgnoreCase(query);
+        return productoRepository.findByCategoriaIgnoreCase(categoria);
     }
     // --- FIN DEL MÉTODO NUEVO ---
 

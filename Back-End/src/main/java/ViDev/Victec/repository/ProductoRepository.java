@@ -10,7 +10,10 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     
     // ... (tus métodos findById, findAll, etc., ya existen) ...
 
-    // 2. --- MÉTODO AÑADIDO ---
-    // Esto busca productos donde el 'nombre' contenga el texto de la consulta
-    List<Producto> findByNombreContainingIgnoreCase(String nombre);
+    // 1. --- MÉTODO ANTIGUO ELIMINADO ---
+    // List<Producto> findByNombreContainingIgnoreCase(String nombre);
+    
+    // 2. --- MÉTODO NUEVO AÑADIDO ---
+    // Esto busca productos donde la 'categoria' coincida (ignorando mayúsculas)
+    List<Producto> findByCategoriaIgnoreCase(String categoria);
 }

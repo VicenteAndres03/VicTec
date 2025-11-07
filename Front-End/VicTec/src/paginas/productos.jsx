@@ -1,31 +1,47 @@
 import React, { useState, useEffect } from 'react';
-// 1. --- IMPORTAR useSearchParams (si no estaba) y useState ---
+// 1. --- IMPORTAMOS useSearchParams ---
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 import './productos.css';
 
-function ProductFilters() {
-  // ... (este componente se queda igual) ...
-  const [activeFilter, setActiveFilter] = useState('todos');
+// 2. --- MODIFICAMOS ProductFilters ---
+// Ahora recibe 'setSearchParams' y 'categoriaActual'
+function ProductFilters({ setSearchParams, categoriaActual }) {
+
+  // Función para manejar el clic en un filtro
+  const handleFilterClick = (nuevaCategoria) => {
+    if (nuevaCategoria === 'todos') {
+      // Si es 'todos', limpiamos el parámetro de la URL
+      setSearchParams({});
+    } else {
+      // Si es otra categoría, la ponemos en la URL
+      setSearchParams({ categoria: nuevaCategoria });
+    }
+  };
+
   return (
     <nav className="filter-bar-container">
       <ul className="filter-list">
         <li>
           <button
-            className={activeFilter === 'todos' ? 'active' : ''}
-            onClick={() => setActiveFilter('todos')}
+            // Comprueba si la categoría activa es 'todos' (o no hay ninguna)
+            className={!categoriaActual ? 'active' : ''}
+            onClick={() => handleFilterClick('todos')}
           >
             Todos
           </button>
         </li>
         <li>
           <button
-            className={activeFilter === 'audifonos' ? 'active' : ''}
-            onClick={() => setActiveFilter('audifonos')}
+            // Comprueba si la categoría activa es 'Audio'
+            className={categoriaActual === 'Audio' ? 'active' : ''}
+            // 3. --- IMPORTANTE: Usamos el valor real del Backend ('Audio') ---
+            onClick={() => handleFilterClick('Audio')}
           >
             Audífonos
           </button>
         </li>
+        {/* Aquí puedes añadir más categorías en el futuro */}
       </ul>
     </nav>
   );
@@ -38,12 +54,12 @@ function ProductosPage() {
   const [error, setError] = useState(null);
   const { getAuthHeader, isAuthenticated } = useAuth();
   
-  // 2. --- OBTENER 'setSearchParams' PARA ACTUALIZAR LA URL ---
+  // 4. --- OBTENEMOS 'searchParams' y 'setSearchParams' ---
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = searchParams.get('q'); 
+  const categoria = searchParams.get('categoria'); // Obtenemos el filtro de la URL
 
-  // 3. --- ESTADO LOCAL PARA EL CAMPO DE TEXTO ---
-  const [localSearchTerm, setLocalSearchTerm] = useState(query || "");
+  // 5. --- LÓGICA DE BÚSQUEDA ELIMINADA ---
+  // Ya no necesitamos 'localSearchTerm' ni 'handleSearchSubmit'
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -51,9 +67,11 @@ function ProductosPage() {
         setLoading(true);
         setError(null);
         
+        // 6. --- URL DE FETCH MODIFICADA ---
         let url = '/api/v1/productos';
-        if (query) {
-          url = `/api/v1/productos?q=${encodeURIComponent(query)}`;
+        if (categoria) {
+          // Si hay una categoría, la añadimos a la URL
+          url = `/api/v1/productos?categoria=${encodeURIComponent(categoria)}`;
         }
         
         const response = await fetch(url);
@@ -71,7 +89,8 @@ function ProductosPage() {
     };
 
     fetchProductos();
-  }, [query]); 
+  // 7. --- DEPENDENCIA DEL useEffect ACTUALIZADA ---
+  }, [categoria]); // Se ejecuta cada vez que 'categoria' (de la URL) cambia
 
   const handleAddToCart = async (e, productoId) => {
     // ... (esta función se queda igual) ...
@@ -100,17 +119,8 @@ function ProductosPage() {
     }
   };
 
-  // 4. --- FUNCIÓN PARA MANEJAR EL ENVÍO DE BÚSQUEDA ---
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (localSearchTerm.trim()) {
-      // Actualiza el parámetro 'q' en la URL
-      setSearchParams({ q: localSearchTerm.trim() });
-    } else {
-      // Si está vacío, quita el parámetro 'q' de la URL
-      setSearchParams({});
-    }
-  };
+  // 8. --- LÓGICA DE BÚSQUEDA ELIMINADA ---
+  // (handleSearchSubmit ya no existe)
 
 
   if (loading) {
@@ -124,29 +134,25 @@ function ProductosPage() {
   return (
     <main className="productos-container">
       
-      {query ? (
-        <h1 className="productos-title">Resultados para: "{query}"</h1>
+      {/* 9. --- Título dinámico según el filtro --- */}
+      {categoria ? (
+        <h1 className="productos-title">Categoría: {categoria}</h1>
       ) : (
         <h1 className="productos-title">Nuestros Productos</h1>
       )}
       
-      {/* 5. --- FORMULARIO DE BÚSQUEDA AÑADIDO --- */}
-      <form className="productos-search-bar" onSubmit={handleSearchSubmit}>
-        <input
-          type="text"
-          placeholder="Buscar en productos..."
-          value={localSearchTerm}
-          onChange={(e) => setLocalSearchTerm(e.target.value)}
-        />
-        <button type="submit">Buscar</button>
-      </form>
+      {/* 10. --- BARRA DE BÚSQUEDA ELIMINADA --- */}
 
-      <ProductFilters />
+      {/* 11. --- Pasamos las props al componente de filtros --- */}
+      <ProductFilters 
+        setSearchParams={setSearchParams} 
+        categoriaActual={categoria} 
+      />
 
       <div className="productos-grid">
         
         {!loading && productos.length === 0 && (
-          <p>No se encontraron productos que coincidan con tu búsqueda.</p>
+          <p>No se encontraron productos en esta categoría.</p>
         )}
         
         {productos.map((producto) => (

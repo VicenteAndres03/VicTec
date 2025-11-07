@@ -21,16 +21,16 @@ public class ProductoController {
     private ProductoService productoService;
 
     // --- ENDPOINT MODIFICADO ---
-    // Ahora acepta un parámetro opcional ?q=...
+    // Ahora acepta un parámetro opcional ?categoria=...
     @GetMapping
     public ResponseEntity<List<Producto>> getAllProductos(
-            @RequestParam(name = "q", required = false) String query) {
+            @RequestParam(name = "categoria", required = false) String categoria) {
         
         List<Producto> productos;
         
-        if (query != null && !query.isEmpty()) {
-            // Si hay una consulta, busca
-            productos = productoService.searchProductos(query);
+        if (categoria != null && !categoria.isEmpty()) {
+            // Si hay una categoría, filtra por categoría
+            productos = productoService.getProductosByCategoria(categoria);
         } else {
             // Si no, devuelve todos
             productos = productoService.getAllProductos();
