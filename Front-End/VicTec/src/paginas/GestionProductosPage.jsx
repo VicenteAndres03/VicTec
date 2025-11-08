@@ -13,20 +13,18 @@ const formularioVacio = {
   precioAntiguo: null,
   enOferta: false,
   sku: '',
-  // --- MODIFICACIÓN: Asegurarnos que el valor inicial sea '' ---
   categoria: '', 
   descripcion: ''
 };
 
-// --- AÑADIDO: Lista de categorías ---
-// ¡Puedes editar esta lista como necesites!
+// --- INICIO DE LA MODIFICACIÓN ---
+// ¡Lista de categorías actualizada!
 const CATEGORIAS_DISPONIBLES = [
   { valor: 'Audio', texto: 'Audio (Audífonos, Parlantes)' },
   { valor: 'Smartwatch', texto: 'Smartwatches y Wearables' },
-  { valor: 'Accesorios', texto: 'Accesorios (Cables, Cargadores)' },
+  { valor: 'Perifericos', texto: 'Periféricos (Teclados, Mouse)' },
   { valor: 'Drones', texto: 'Drones y Accesorios' },
-  // { valor: 'Componentes', texto: 'Componentes PC' },
-  // { valor: 'Celulares', texto: 'Celulares' },
+  { valor: 'Accesorios', texto: 'Accesorios (Cables, Cargadores)' },
 ];
 // --- FIN DE LA MODIFICACIÓN ---
 
@@ -187,7 +185,7 @@ function GestionProductosPage() {
               <input type="url" id="imgUrl" name="imgUrl" placeholder="https://ejemplo.com/imagen.png" value={productoActual.imgUrl} onChange={handleInputChange} required />
             </div>
              
-             {/* --- INICIO DE LA MODIFICACIÓN --- */}
+             {/* El <select> ahora leerá la nueva lista de categorías */}
              <div className="form-group-admin">
               <label htmlFor="categoria">Categoría</label>
               <select 
@@ -205,7 +203,6 @@ function GestionProductosPage() {
                 ))}
               </select>
             </div>
-            {/* --- FIN DE LA MODIFICACIÓN --- */}
 
           </div>
 
@@ -265,7 +262,6 @@ function GestionProductosPage() {
               <tr>
                 <th>Imagen</th>
                 <th>Nombre</th>
-                {/* --- AÑADIDO: Columna Categoría --- */}
                 <th>Categoría</th>
                 <th>Precio</th>
                 <th>Stock</th>
@@ -279,7 +275,6 @@ function GestionProductosPage() {
                     <img src={prod.imgUrl} alt={prod.nombre} />
                   </td>
                   <td className="cell-nombre">{prod.nombre}</td>
-                  {/* --- AÑADIDO: Celda Categoría --- */}
                   <td>{prod.categoria}</td>
                   <td>CLP${prod.precio.toLocaleString('es-CL')}</td>
                   <td>{prod.stock}</td>

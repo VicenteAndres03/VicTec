@@ -1,6 +1,5 @@
 package ViDev.Victec.model;
 
-// 1. --- IMPORTA JsonBackReference ---
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
@@ -12,8 +11,7 @@ public class Comentario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 2. --- ¡CAMBIA ESTO! ---
-    @JsonBackReference // <-- De @JsonIgnore a @JsonBackReference
+    @JsonBackReference // <-- ¡ASEGÚRATE DE QUE ESTÉ ASÍ!
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;

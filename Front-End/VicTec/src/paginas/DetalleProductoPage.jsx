@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './DetalleProductoPage.css'; 
 
-// --- Helper para renderizar estrellas (Sin cambios) ---
+// --- Helper para renderizar estrellas ---
 function renderRating(rating) {
   const stars = [];
   for (let i = 0; i < 5; i++) {
@@ -16,9 +16,7 @@ function renderRating(rating) {
   return stars;
 }
 
-// --- Sub-componentes para Pestañas ---
-
-// (Función DescripcionTab se queda igual)
+// --- Sub-componente Pestaña de Descripción ---
 function DescripcionTab({ producto }) {
   return (
     <div className="tab-content-descripcion">
@@ -27,20 +25,119 @@ function DescripcionTab({ producto }) {
   );
 }
 
-// 1. --- ELIMINAMOS LA FUNCIÓN EspecificacionesTab ---
-
-// (Función ComentariosTab se queda igual)
-function ComentariosTab({ producto }) {
+// --- Sub-componente Pestaña de Comentarios (MODIFICADA) ---
+function ComentariosTab({ producto, onCommentAdded }) {
   const comentarios = producto?.comentarios || [];
   
+  // Estados para el nuevo formulario de comentario
+  const { isAuthenticated, getAuthHeader, user } = useAuth();
+  const [rating, setRating] = useState(5);
+  const [texto, setTexto] = useState('');
+  const [status, setStatus] = useState('idle'); // idle, submitting, error
+  const [error, setError] = useState(null);
+
+  // Handler para enviar el formulario
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      setError('Debes iniciar sesión para comentar.');
+      return;
+    }
+    
+    setStatus('submitting');
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/v1/productos/${producto.id}/comentarios`, {
+        method: 'POST',
+        headers: getAuthHeader(), // ¡Enviamos el token!
+        body: JSON.stringify({
+          texto: texto,
+          rating: rating
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'No se pudo enviar el comentario.');
+      }
+
+      // ¡Éxito!
+      setStatus('idle');
+      setTexto('');
+      setRating(5);
+      onCommentAdded(); // ¡Llamamos a la función del padre para refrescar!
+
+    } catch (err) {
+      setStatus('error');
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="tab-content-comentarios">
       <h4>Opiniones del Producto ({comentarios.length})</h4>
+      
+      {/* --- Formulario para Añadir Comentario --- */}
+      {isAuthenticated ? (
+        <form className="comment-form" onSubmit={handleSubmitComment}>
+          <h5>Escribe tu opinión</h5>
+          <p>Tu nombre se mostrará como: <strong>{user?.nombre || user?.email}</strong></p>
+          
+          {/* Input de Estrellas */}
+          <div className="form-group-rating">
+            <label>Tu puntuación:</label>
+            <div className="stars-input">
+              {[5, 4, 3, 2, 1].map((star) => (
+                <React.Fragment key={star}>
+                  <input
+                    type="radio"
+                    id={`star${star}`}
+                    name="rating"
+                    value={star}
+                    checked={rating === star}
+                    onChange={() => setRating(star)}
+                  />
+                  <label htmlFor={`star${star}`}>★</label>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+          
+          {/* Input de Texto */}
+          <div className="form-group-comment">
+            <label htmlFor="comment-text">Tu opinión:</label>
+            <textarea
+              id="comment-text"
+              rows="4"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              placeholder="Escribe lo que piensas del producto..."
+              required
+            ></textarea>
+          </div>
+          
+          {status === 'error' && (
+            <p className="comment-form-error">{error}</p>
+          )}
+
+          <button type="submit" className="comment-submit-button" disabled={status === 'submitting'}>
+            {status === 'submitting' ? 'Enviando...' : 'Enviar Opinión'}
+          </button>
+        </form>
+      ) : (
+        <p className="comment-login-prompt">
+          <Link to="/login">Inicia sesión</Link> para dejar tu opinión.
+        </p>
+      )}
+      {/* --- Fin del Formulario --- */}
+      
       <div className="comentarios-lista">
         {comentarios.length === 0 ? (
           <p>Este producto aún no tiene opiniones. ¡Sé el primero!</p>
         ) : (
-          comentarios.map((comentario) => (
+          // Ordenamos comentarios del más nuevo al más viejo (por ID)
+          [...comentarios].sort((a, b) => b.id - a.id).map((comentario) => (
             <div className="comentario-item" key={comentario.id}>
               <div className="comentario-header">
                 <span className="comentario-autor">{comentario.autor}</span>
@@ -69,31 +166,35 @@ function DetalleProductoPage() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('desc');
 
-  useEffect(() => {
-    const fetchProducto = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch(`/api/v1/productos/${id}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Producto no encontrado');
-          }
-          throw new Error('Error al cargar el producto');
+  // Mover la lógica de fetch a una función useCallback
+  const fetchProducto = useCallback(async () => {
+    console.log("Refrescando producto...");
+    try {
+      // No ponemos setLoading(true) aquí para que el refresco sea silencioso
+      setError(null);
+      const response = await fetch(`/api/v1/productos/${id}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Producto no encontrado');
         }
-        
-        const data = await response.json();
-        setProducto(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        throw new Error('Error al cargar el producto');
       }
-    };
-    
+      
+      const data = await response.json();
+      setProducto(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false); // Solo quita el 'loading' inicial
+    }
+  }, [id]); // Depende de 'id'
+
+  // El useEffect ahora solo llama a la función
+  useEffect(() => {
+    setLoading(true); // Activa el loading inicial la primera vez
     fetchProducto();
-  }, [id]); 
+  }, [fetchProducto]); // Se ejecuta cuando fetchProducto cambia (o sea, cuando 'id' cambia)
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -195,7 +296,6 @@ function DetalleProductoPage() {
             Añadir al Carrito
           </button>
 
-          {/* 2. --- AQUÍ AÑADIMOS LA NOTA DE ENVÍO --- */}
           <p className="detalle-envio-info">
             🚚 **Nota:** Este es un producto de importación. El tiempo de envío estimado es de 15 a 30 días hábiles.
           </p>
@@ -211,9 +311,7 @@ function DetalleProductoPage() {
           >
             Descripción
           </button>
-          
-          {/* 3. --- ELIMINAMOS EL BOTÓN DE LA PESTAÑA --- */}
-          
+                    
           <button 
             className={`detalle-tab-button ${activeTab === 'reviews' ? 'active' : ''}`}
             onClick={() => setActiveTab('reviews')}
@@ -224,8 +322,14 @@ function DetalleProductoPage() {
         
         <div className="detalle-tab-content">
           {activeTab === 'desc' && producto && <DescripcionTab producto={producto} />}
-          {/* 4. --- ELIMINAMOS EL RENDER DE LA PESTAÑA --- */}
-          {activeTab === 'reviews' && producto && <ComentariosTab producto={producto} />}
+          
+          {/* Pasamos la función de refresco como prop */}
+          {activeTab === 'reviews' && producto && (
+            <ComentariosTab 
+              producto={producto} 
+              onCommentAdded={fetchProducto} 
+            />
+          )}
         </div>
       </div>
     </main>

@@ -133,7 +133,7 @@
   box-shadow: 0 5px 15px rgba(0, 208, 132, 0.3);
 }
 
-/* --- SECCIÓN DE PESTAÑAS (NUEVO) --- */
+/* --- SECCIÓN DE PESTAÑAS --- */
 .detalle-tabs-container {
   background-color: #fff;
   border: 1px solid #eee;
@@ -265,8 +265,6 @@
   border-radius: 50px;
 }
 
-/* ... (todo tu CSS anterior) ... */
-
 /* --- Estilo para la nota de envío --- */
 .detalle-envio-info {
   font-size: 0.9rem;
@@ -295,4 +293,121 @@
     overflow-x: auto;
     white-space: nowrap;
   }
+}
+
+/* --- (NUEVO) Estilos para el Formulario de Comentarios --- */
+.comment-form {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.comment-form h5 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.25rem 0;
+}
+.comment-form p {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 0;
+}
+
+.comment-login-prompt {
+  font-size: 1.1rem;
+  text-align: center;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2.5rem;
+}
+.comment-login-prompt a {
+  color: var(--color-primario);
+  font-weight: 600;
+}
+
+.form-group-rating {
+  margin-bottom: 1rem;
+}
+.form-group-rating label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+  margin-right: 1rem;
+}
+
+/* Estilo para las estrellas (CSS puro) */
+.stars-input {
+  display: inline-flex;
+  flex-direction: row-reverse; /* Hace que el hover funcione de 5 a 1 */
+}
+.stars-input input[type="radio"] {
+  display: none;
+}
+.stars-input label {
+  font-size: 1.8rem;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.stars-input input[type="radio"]:checked ~ label,
+.stars-input label:hover,
+.stars-input label:hover ~ label {
+  color: #f39c12; /* Amarillo estrella */
+}
+
+.form-group-comment {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+.form-group-comment label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+.form-group-comment textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: vertical;
+  min-height: 80px;
+}
+.form-group-comment textarea:focus {
+  outline: none;
+  border-color: var(--color-primario);
+  box-shadow: 0 0 0 3px rgba(0, 208, 132, 0.2);
+}
+
+.comment-submit-button {
+  display: inline-block;
+  background-color: var(--color-primario);
+  color: #000;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: bold;
+  padding: 0.7rem 1.5rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.comment-submit-button:hover {
+  background-color: #00ff9d;
+}
+.comment-submit-button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+.comment-form-error {
+  color: #721c24;
+  font-weight: 500;
+  margin-bottom: 1rem;
 }

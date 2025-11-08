@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// 1. --- useNavigate ya no es necesario aquí ---
 import { Link } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 import "./header.css";
@@ -8,9 +7,6 @@ import logo from "../assets/Circulo.png";
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  
-  // 2. --- LÓGICA DE BÚSQUEDA ELIMINADA ---
-  // (El estado searchTerm y la función handleSearchSubmit se fueron)
   
   const { isAuthenticated, user, logout } = useAuth();
 
@@ -29,20 +25,29 @@ function Header() {
             <li><Link to="/soporte">Soporte</Link></li>
             <li><Link to="/blog">Blog</Link></li>
             
-            {/* 3. --- FORMULARIO DE BÚSQUEDA (MÓVIL) ELIMINADO --- */}
+            {/* --- INICIO DE LA MODIFICACIÓN --- */}
+            {/* Este enlace solo se muestra si:
+              1. El usuario está autenticado.
+              2. El objeto 'user' existe.
+              3. El array 'user.roles' incluye "ROLE_ADMIN".
+            */}
+            {isAuthenticated && user?.roles?.includes('ROLE_ADMIN') && (
+              <li className="admin-panel-link">
+                <Link to="/admin/productos">Panel Admin</Link>
+              </li>
+            )}
+            {/* --- FIN DE LA MODIFICACIÓN --- */}
+
           </ul>
         </nav>
 
         <div className="header-actions">
           
-          {/* 4. --- FORMULARIO DE BÚSQUEDA (ESCRITORIO) ELIMINADO --- */}
-          
-          {/* ... (el resto del header queda igual) ... */}
           <div className="user-icons">
             <div className="user-menu">
               <span className="icon-link user-icon-trigger" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
                 {isAuthenticated ? (
-                  <div className="user-initials">{ (user.nombre && user.nombre.charAt(0)) || (user.email && user.email.charAt(0)) || 'U' }</div>
+                  <div className="user-initials">{ (user?.nombre && user.nombre.charAt(0)) || (user?.email && user.email.charAt(0)) || 'U' }</div>
                 ) : (
                   '👤'
                 )}

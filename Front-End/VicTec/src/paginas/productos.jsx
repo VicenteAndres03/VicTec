@@ -8,10 +8,8 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
   // Función para manejar el clic en un filtro
   const handleFilterClick = (nuevaCategoria) => {
     if (nuevaCategoria === 'todos') {
-      // Si es 'todos', limpiamos el parámetro de la URL
       setSearchParams({});
     } else {
-      // Si es otra categoría, la ponemos en la URL
       setSearchParams({ categoria: nuevaCategoria });
     }
   };
@@ -21,7 +19,6 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
       <ul className="filter-list">
         <li>
           <button
-            // Comprueba si la categoría activa es 'todos' (o no hay ninguna)
             className={!categoriaActual ? 'active' : ''}
             onClick={() => handleFilterClick('todos')}
           >
@@ -30,9 +27,7 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
         </li>
         <li>
           <button
-            // Comprueba si la categoría activa es 'Audio'
             className={categoriaActual === 'Audio' ? 'active' : ''}
-            // Usamos el valor real del Backend ('Audio')
             onClick={() => handleFilterClick('Audio')}
           >
             Audio
@@ -40,7 +35,6 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
         </li>
 
         {/* --- INICIO DE LA MODIFICACIÓN --- */}
-        {/* Añadimos los nuevos botones de categoría */}
         <li>
           <button
             className={categoriaActual === 'Smartwatch' ? 'active' : ''}
@@ -51,10 +45,10 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
         </li>
         <li>
           <button
-            className={categoriaActual === 'Accesorios' ? 'active' : ''}
-            onClick={() => handleFilterClick('Accesorios')}
+            className={categoriaActual === 'Perifericos' ? 'active' : ''}
+            onClick={() => handleFilterClick('Perifericos')}
           >
-            Accesorios
+            Periféricos
           </button>
         </li>
         <li>
@@ -65,7 +59,14 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
             Drones
           </button>
         </li>
-        {/* (Puedes añadir más aquí en el futuro) */}
+        <li>
+          <button
+            className={categoriaActual === 'Accesorios' ? 'active' : ''}
+            onClick={() => handleFilterClick('Accesorios')}
+          >
+            Accesorios
+          </button>
+        </li>
         {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       </ul>
@@ -80,9 +81,8 @@ function ProductosPage() {
   const [error, setError] = useState(null);
   const { getAuthHeader, isAuthenticated } = useAuth();
   
-  // Obtenemos 'searchParams' y 'setSearchParams'
   const [searchParams, setSearchParams] = useSearchParams();
-  const categoria = searchParams.get('categoria'); // Obtenemos el filtro de la URL
+  const categoria = searchParams.get('categoria'); 
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -90,10 +90,8 @@ function ProductosPage() {
         setLoading(true);
         setError(null);
         
-        // URL de FETCH MODIFICADA
         let url = '/api/v1/productos';
         if (categoria) {
-          // Si hay una categoría, la añadimos a la URL
           url = `/api/v1/productos?categoria=${encodeURIComponent(categoria)}`;
         }
         
@@ -112,11 +110,9 @@ function ProductosPage() {
     };
 
     fetchProductos();
-  // Se ejecuta cada vez que 'categoria' (de la URL) cambia
   }, [categoria]); 
 
   const handleAddToCart = async (e, productoId) => {
-    // (esta función se queda igual)
     e.preventDefault(); 
     e.stopPropagation(); 
     if (!isAuthenticated) {
@@ -154,14 +150,12 @@ function ProductosPage() {
   return (
     <main className="productos-container">
       
-      {/* Título dinámico según el filtro */}
       {categoria ? (
         <h1 className="productos-title">Categoría: {categoria}</h1>
       ) : (
         <h1 className="productos-title">Nuestros Productos</h1>
       )}
       
-      {/* Pasamos las props al componente de filtros */}
       <ProductFilters 
         setSearchParams={setSearchParams} 
         categoriaActual={categoria} 

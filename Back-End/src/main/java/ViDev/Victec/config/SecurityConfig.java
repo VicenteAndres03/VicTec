@@ -82,13 +82,15 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
+
+                // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+                // La ruta correcta usa una variable de path, no un doble wildcard (**)
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/productos/{productoId}/comentarios").authenticated()
                 
                 // Rutas Públicas
                 .requestMatchers("/api/v1/soporte/**").permitAll()
                 .requestMatchers("/api/v1/webhooks/**").permitAll() 
                 .requestMatchers("/compra-exitosa", "/pago-fallido", "/pago-pendiente").permitAll()
-                
-                // --- ¡ESTA ES LA LÍNEA QUE DEBES AÑADIR! ---
                 .requestMatchers("/error").permitAll() 
                 
                 // Rutas de Admin
@@ -105,8 +107,6 @@ public class SecurityConfig {
             )
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
         
-        // (Recuerda que la línea http.authenticationProvider(...) se eliminó correctamente)
-
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
