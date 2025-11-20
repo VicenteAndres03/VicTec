@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./Footer.css";
 import instagramLogo from "../assets/instagram.svg";
 import tiktokLogo from "../assets/tiktok.svg";
@@ -12,21 +13,21 @@ function Footer() {
         <div className="footer-social">
           {/* 2. Reemplazamos el texto con etiquetas <img> */}
           <a
-            href="https://instagram.com/tu-usuario"
+            href="https://www.instagram.com/victecv/"
             target="_blank"
             rel="noopener noreferrer"
           >
             <img src={instagramLogo} alt="Instagram" />
           </a>
           <a
-            href="https://tiktok.com/@tu-usuario"
+            href="https://www.tiktok.com/@vixdevcl"
             target="_blank"
             rel="noopener noreferrer"
           >
             <img src={tiktokLogo} alt="TikTok" />
           </a>
           <a
-            href="https://youtube.com/c/tu-canal"
+            href="https://www.youtube.com/@VixDevcl"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -41,8 +42,8 @@ function Footer() {
 
         {/* --- Enlaces de Política (opcional) --- */}
         <div className="footer-links">
-          <a href="/politica-privacidad">Política de Privacidad</a>
-          <a href="/terminos-servicio">Términos de Servicio</a>
+          <Link to="/politica-privacidad">Política de Privacidad</Link>
+          <Link to="/terminos-servicio">Términos de Servicio</Link>
         </div>
       </div>
     </footer>

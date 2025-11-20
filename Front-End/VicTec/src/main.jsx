@@ -30,6 +30,8 @@ import CheckoutPage from './paginas/CheckoutPage.jsx';
 import MiCuentaPage from './paginas/MiCuentaPage.jsx';
 import MisPedidosPage from './paginas/MisPedidosPage.jsx';
 import CompraExitosaPage from './paginas/CompraExitosaPage.jsx';
+import PoliticaPrivacidadPage from './paginas/PoliticaPrivacidadPage.jsx';
+import TerminosServicioPage from './paginas/TerminosServicioPage.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -50,6 +52,8 @@ createRoot(document.getElementById('root')).render(
               <Route path="mi-cuenta" element={<MiCuentaPage />} />
               <Route path="mis-pedidos" element={<MisPedidosPage />} />
               <Route path="compra-exitosa" element={<CompraExitosaPage />} />
+              <Route path="politica-privacidad" element={<PoliticaPrivacidadPage />} />
+              <Route path="terminos-servicio" element={<TerminosServicioPage />} />
               
               {/* --- 2. RUTAS PÚBLICAS PROTEGIDAS --- */}
               {/* Si estás logueado, te redirige a '/' */}

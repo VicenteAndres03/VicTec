@@ -5,6 +5,7 @@ import ViDev.Victec.security.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -21,6 +22,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -57,10 +59,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        // --- AQUÍ ESTÁ EL CAMBIO ---
+        // Autorizamos a tu PC local Y a tu nueva web en Netlify
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5173",           // Pruebas en tu PC
+            "https://victec.netlify.app"       // <--- TU NUEVA TIENDA EN VIVO
+        ));
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -73,30 +83,30 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 
-                // Rutas de Autenticación
+                // Rutas de Autenticación (Públicas)
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/google-login").permitAll()
                 .requestMatchers("/api/v1/auth/**").authenticated()
                 
-                // Rutas de Productos
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/productos", "/api/v1/productos/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
+                // Rutas de Productos (Ver es público, editar es admin)
+                .requestMatchers(HttpMethod.GET, "/api/v1/productos", "/api/v1/productos/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/productos", "/api/v1/productos/**").hasRole("ADMIN")
 
-                // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-                // La ruta correcta usa una variable de path, no un doble wildcard (**)
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/productos/{productoId}/comentarios").authenticated()
+                // Comentarios (Requiere login)
+                .requestMatchers(HttpMethod.POST, "/api/v1/productos/{productoId}/comentarios").authenticated()
                 
-                // Rutas Públicas
+                // Rutas Públicas Generales (Webhooks y Soporte)
                 .requestMatchers("/api/v1/soporte/**").permitAll()
                 .requestMatchers("/api/v1/webhooks/**").permitAll() 
                 .requestMatchers("/compra-exitosa", "/pago-fallido", "/pago-pendiente").permitAll()
                 .requestMatchers("/error").permitAll() 
                 
-                // Rutas de Admin
+                // Rutas de Admin (Panel)
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                // Rutas de Usuario Autenticado
+                // Rutas de Usuario (Carrito, Pedidos, Perfil)
                 .requestMatchers("/api/v1/carrito/**").authenticated()
                 .requestMatchers("/api/v1/direcciones/**").authenticated()
                 .requestMatchers("/api/v1/pedidos/**").authenticated()
@@ -105,6 +115,7 @@ public class SecurityConfig {
                 // Todo lo demás requiere autenticación
                 .anyRequest().authenticated()
             )
+            .authenticationProvider(authenticationProvider(userDetailsService))
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
         
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
