@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config'; // <--- Importar
 import './CarritoPage.css';
 
-// --- INICIO DE LA MODIFICACIÓN ---
-// 1. Creamos una función reutilizable para calcular el envío
 const calcularEnvio = (subtotal) => {
   if (subtotal === 0) return 0;
-  if (subtotal >= 50000) return 0; // Envío gratis
-  if (subtotal >= 25000) return 1990; // Envío reducido
-  return 3500; // Envío estándar
+  if (subtotal >= 50000) return 0;
+  if (subtotal >= 25000) return 1990;
+  return 3500;
 };
-// --- FIN DE LA MODIFICACIÓN ---
 
 function CarritoPage() {
   const { getAuthHeader, isAuthenticated } = useAuth();
@@ -29,7 +27,8 @@ function CarritoPage() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('/api/v1/carrito', {
+        // Usamos API_URL
+        const response = await fetch(`${API_URL}/carrito`, {
           headers: getAuthHeader(),
         });
 
@@ -47,7 +46,6 @@ function CarritoPage() {
             const errorText = await response.text();
             errorMessage = errorText || errorMessage;
           }
-          console.error('Error al cargar carrito:', response.status, errorMessage);
           throw new Error(errorMessage);
         }
         
@@ -66,7 +64,8 @@ function CarritoPage() {
 
   const handleRemoveItem = async (productoId) => {
     try {
-      const response = await fetch(`/api/v1/carrito/remove/${productoId}`, {
+      // Usamos API_URL
+      const response = await fetch(`${API_URL}/carrito/remove/${productoId}`, {
         method: 'DELETE',
         headers: getAuthHeader(),
       });
@@ -88,7 +87,8 @@ function CarritoPage() {
     }
 
     try {
-      const response = await fetch('/api/v1/carrito/update-cantidad', {
+      // Usamos API_URL
+      const response = await fetch(`${API_URL}/carrito/update-cantidad`, {
         method: 'PUT',
         headers: getAuthHeader(),
         body: JSON.stringify({
@@ -107,13 +107,11 @@ function CarritoPage() {
   };
 
   const handleIncrement = (item) => {
-    const nuevaCantidad = item.cantidad + 1;
-    handleUpdateQuantity(item.producto.id, nuevaCantidad);
+    handleUpdateQuantity(item.producto.id, item.cantidad + 1);
   };
 
   const handleDecrement = (item) => {
-    const nuevaCantidad = item.cantidad - 1;
-    handleUpdateQuantity(item.producto.id, nuevaCantidad);
+    handleUpdateQuantity(item.producto.id, item.cantidad - 1);
   };
 
   const subtotal = items.reduce((acc, item) => {
@@ -121,7 +119,6 @@ function CarritoPage() {
     return acc + item.producto.precio * item.cantidad;
   }, 0);
   
-  // 2. --- Usamos la nueva función ---
   const envio = calcularEnvio(subtotal);
   const total = subtotal + envio;
 
@@ -129,9 +126,7 @@ function CarritoPage() {
     <div className="cart-empty">
       <h2>Tu carrito está vacío</h2>
       <p>Parece que aún no has añadido nada. ¡Explora nuestros productos!</p>
-      <Link to="/productos" className="cart-empty-button">
-        Ver Productos
-      </Link>
+      <Link to="/productos" className="cart-empty-button">Ver Productos</Link>
     </div>
   );
 
@@ -143,43 +138,18 @@ function CarritoPage() {
           return (
             <div className="cart-item" key={item.id}> 
               <div className="cart-item-image">
-                <img src={item.producto.imgUrl || ''} alt={item.producto.nombre || 'Producto'} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                <img src={item.producto.imgUrl || ''} alt={item.producto.nombre} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
               </div>
               <div className="cart-item-details">
-                <span className="cart-item-brand">{item.producto.marca || ''}</span>
-                <span className="cart-item-name">{item.producto.nombre || 'Producto sin nombre'}</span>
-                <button 
-                  className="cart-item-remove"
-                  onClick={() => handleRemoveItem(item.producto.id)}
-                >
-                  Quitar
-                </button>
+                <span className="cart-item-brand">{item.producto.marca}</span>
+                <span className="cart-item-name">{item.producto.nombre}</span>
+                <button className="cart-item-remove" onClick={() => handleRemoveItem(item.producto.id)}>Quitar</button>
               </div>
               <div className="cart-item-quantity">
                 <div className="quantity-controls">
-                  <button 
-                    className="quantity-btn minus"
-                    onClick={() => handleDecrement(item)}
-                    aria-label="Disminuir cantidad"
-                  >
-                    -
-                  </button>
-                  <input 
-                    type="number" 
-                    min="1" 
-                    max="10" 
-                    value={item.cantidad || 1} 
-                    readOnly 
-                    className="quantity-input"
-                  />
-                  <button 
-                    className="quantity-btn plus"
-                    onClick={() => handleIncrement(item)}
-                    disabled={item.cantidad >= 10}
-                    aria-label="Aumentar cantidad"
-                  >
-                    +
-                  </button>
+                  <button className="quantity-btn minus" onClick={() => handleDecrement(item)}>-</button>
+                  <input type="number" min="1" max="10" value={item.cantidad || 1} readOnly className="quantity-input" />
+                  <button className="quantity-btn plus" onClick={() => handleIncrement(item)} disabled={item.cantidad >= 10}>+</button>
                 </div>
               </div>
               <div className="cart-item-price">
@@ -192,25 +162,11 @@ function CarritoPage() {
 
       <div className="cart-summary">
         <h3>Resumen de tu Pedido</h3>
-        <div className="summary-row">
-          <span>Subtotal</span>
-          <span>CLP$${subtotal.toLocaleString('es-CL')}</span>
-        </div>
-        <div className="summary-row">
-          <span>Envío (Estimado)</span>
-          {/* 3. --- Lógica para mostrar "Gratis" --- */}
-          <span>{envio === 0 ? 'Gratis' : `CLP$${envio.toLocaleString('es-CL')}`}</span>
-        </div>
+        <div className="summary-row"><span>Subtotal</span><span>CLP${subtotal.toLocaleString('es-CL')}</span></div>
+        <div className="summary-row"><span>Envío (Estimado)</span><span>{envio === 0 ? 'Gratis' : `CLP$${envio.toLocaleString('es-CL')}`}</span></div>
         <div className="summary-divider"></div>
-        <div className="summary-row total">
-          <span>Total</span>
-          <span>CLP$${total.toLocaleString('es-CL')}</span>
-        </div>
-        {items.length > 0 && (
-          <Link to="/checkout" className="checkout-button">
-            Proceder al Pago
-          </Link>
-        )}
+        <div className="summary-row total"><span>Total</span><span>CLP${total.toLocaleString('es-CL')}</span></div>
+        {items.length > 0 && <Link to="/checkout" className="checkout-button">Proceder al Pago</Link>}
       </div>
     </div>
   );
@@ -218,14 +174,8 @@ function CarritoPage() {
   return (
     <main className="carrito-container">
       <h1 className="carrito-title">Tu Carrito de Compras</h1>
-      
       {error && <p className="register-error-message">Error: {error}</p>}
-      
-      {loading ? (
-        <p>Cargando carrito...</p>
-      ) : (
-        items.length === 0 ? renderEmptyCart() : renderCart()
-      )}
+      {loading ? <p>Cargando carrito...</p> : (items.length === 0 ? renderEmptyCart() : renderCart())}
     </main>
   );
 }

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; 
+import { useAuth } from '../context/AuthContext';
+import API_URL from '../config'; // <--- Importamos la URL centralizada
 import './productos.css';
 
 function ProductFilters({ setSearchParams, categoriaActual }) {
-
-  // Función para manejar el clic en un filtro
   const handleFilterClick = (nuevaCategoria) => {
     if (nuevaCategoria === 'todos') {
       setSearchParams({});
@@ -17,58 +16,12 @@ function ProductFilters({ setSearchParams, categoriaActual }) {
   return (
     <nav className="filter-bar-container">
       <ul className="filter-list">
-        <li>
-          <button
-            className={!categoriaActual ? 'active' : ''}
-            onClick={() => handleFilterClick('todos')}
-          >
-            Todos
-          </button>
-        </li>
-        <li>
-          <button
-            className={categoriaActual === 'Audio' ? 'active' : ''}
-            onClick={() => handleFilterClick('Audio')}
-          >
-            Audio
-          </button>
-        </li>
-
-        {/* --- INICIO DE LA MODIFICACIÓN --- */}
-        <li>
-          <button
-            className={categoriaActual === 'Smartwatch' ? 'active' : ''}
-            onClick={() => handleFilterClick('Smartwatch')}
-          >
-            Smartwatches
-          </button>
-        </li>
-        <li>
-          <button
-            className={categoriaActual === 'Perifericos' ? 'active' : ''}
-            onClick={() => handleFilterClick('Perifericos')}
-          >
-            Periféricos
-          </button>
-        </li>
-        <li>
-          <button
-            className={categoriaActual === 'Drones' ? 'active' : ''}
-            onClick={() => handleFilterClick('Drones')}
-          >
-            Drones
-          </button>
-        </li>
-        <li>
-          <button
-            className={categoriaActual === 'Accesorios' ? 'active' : ''}
-            onClick={() => handleFilterClick('Accesorios')}
-          >
-            Accesorios
-          </button>
-        </li>
-        {/* --- FIN DE LA MODIFICACIÓN --- */}
-
+        <li><button className={!categoriaActual ? 'active' : ''} onClick={() => handleFilterClick('todos')}>Todos</button></li>
+        <li><button className={categoriaActual === 'Audio' ? 'active' : ''} onClick={() => handleFilterClick('Audio')}>Audio</button></li>
+        <li><button className={categoriaActual === 'Smartwatch' ? 'active' : ''} onClick={() => handleFilterClick('Smartwatch')}>Smartwatches</button></li>
+        <li><button className={categoriaActual === 'Perifericos' ? 'active' : ''} onClick={() => handleFilterClick('Perifericos')}>Periféricos</button></li>
+        <li><button className={categoriaActual === 'Drones' ? 'active' : ''} onClick={() => handleFilterClick('Drones')}>Drones</button></li>
+        <li><button className={categoriaActual === 'Accesorios' ? 'active' : ''} onClick={() => handleFilterClick('Accesorios')}>Accesorios</button></li>
       </ul>
     </nav>
   );
@@ -84,15 +37,19 @@ function ProductosPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoria = searchParams.get('categoria'); 
 
+  // --- AQUI ESTABA EL ERROR, ESTA ES LA FORMA CORRECTA ---
   useEffect(() => {
+    // 1. Creamos la función async DENTRO del efecto
     const fetchProductos = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        let url = '/api/v1/productos';
+        // Usamos la variable API_URL del archivo config.js
+        let url = `${API_URL}/productos`;
+        
         if (categoria) {
-          url = `/api/v1/productos?categoria=${encodeURIComponent(categoria)}`;
+          url = `${API_URL}/productos?categoria=${encodeURIComponent(categoria)}`;
         }
         
         const response = await fetch(url);
@@ -109,8 +66,9 @@ function ProductosPage() {
       }
     };
 
+    // 2. Llamamos a la función
     fetchProductos();
-  }, [categoria]); 
+  }, [categoria]); // Se ejecuta cuando cambia la categoría
 
   const handleAddToCart = async (e, productoId) => {
     e.preventDefault(); 
@@ -120,7 +78,8 @@ function ProductosPage() {
       return;
     }
     try {
-      const response = await fetch('/api/v1/carrito/add', {
+      // Usamos API_URL aquí también para conectar con la nube
+      const response = await fetch(`${API_URL}/carrito/add`, { 
         method: 'POST',
         headers: getAuthHeader(),
         body: JSON.stringify({
@@ -138,70 +97,45 @@ function ProductosPage() {
     }
   };
 
-
-  if (loading) {
-    return <div className="productos-container"><p>Cargando productos...</p></div>;
-  }
-
-  if (error) {
-    return <div className="productos-container"><p>Error al cargar productos: {error}</p></div>;
-  }
+  if (loading) return <div className="productos-container"><p>Cargando productos...</p></div>;
+  if (error) return <div className="productos-container"><p>Error al cargar productos: {error}</p></div>;
 
   return (
     <main className="productos-container">
-      
       {categoria ? (
         <h1 className="productos-title">Categoría: {categoria}</h1>
       ) : (
         <h1 className="productos-title">Nuestros Productos</h1>
       )}
       
-      <ProductFilters 
-        setSearchParams={setSearchParams} 
-        categoriaActual={categoria} 
-      />
+      <ProductFilters setSearchParams={setSearchParams} categoriaActual={categoria} />
 
       <div className="productos-grid">
-        
         {!loading && productos.length === 0 && (
           <p>No se encontraron productos en esta categoría.</p>
         )}
         
         {productos.map((producto) => (
-          <Link 
-            to={`/productos/${producto.id}`} 
-            className="product-card" 
-            key={producto.id}
-          >
+          <Link to={`/productos/${producto.id}`} className="product-card" key={producto.id}>
             <div className="product-image-box">
               <img src={producto.imgUrl} alt={producto.nombre} className="product-image-real" />
               {producto.enOferta && <span className="sale-tag">Sale</span>}
             </div>
-            
             <div className="product-info">
               <h3 className="product-name">{producto.nombre}</h3>
               <div className="product-price">
-                <span className="current-price">
-                  CLP${producto.precio.toLocaleString('es-CL')}
-                </span>
+                <span className="current-price">CLP${producto.precio.toLocaleString('es-CL')}</span>
                 {producto.enOferta && producto.precioAntiguo && (
-                  <span className="old-price">
-                    CLP${producto.precioAntiguo.toLocaleString('es-CL')}
-                  </span>
+                  <span className="old-price">CLP${producto.precioAntiguo.toLocaleString('es-CL')}</span>
                 )}
               </div>
               <span className="product-brand-placeholder">{producto.marca}</span>
-              
-              <button 
-                className="product-add-to-cart-button"
-                onClick={(e) => handleAddToCart(e, producto.id)}
-              >
+              <button className="product-add-to-cart-button" onClick={(e) => handleAddToCart(e, producto.id)}>
                 Añadir al Carrito
               </button>
             </div>
           </Link>
         ))}
-        
       </div>
     </main>
   );
