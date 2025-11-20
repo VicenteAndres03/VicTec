@@ -1,34 +1,29 @@
-import React, { useState } from 'react'; // 1. Importar useState
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config'; // <--- 1. IMPORTAR API_URL
 import './MiCuentaPage.css';
 
 function MiCuentaPage() {
-  // 2. Obtenemos 'user' y 'getAuthHeader' del contexto
   const { user, getAuthHeader } = useAuth();
 
-  // 3. Estados para el formulario de contraseña
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // 4. Estados para los mensajes de éxito/error
-  const [status, setStatus] = useState('idle'); // idle, submitting, success, error
+  const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
 
-  // 5. Handler para enviar el formulario de contraseña
   const handleSubmitPassword = async (e) => {
     e.preventDefault();
     setStatus('submitting');
     setMessage('');
 
-    // Validación 1: Confirmación de contraseña
     if (newPassword !== confirmPassword) {
       setStatus('error');
       setMessage('Las nuevas contraseñas no coinciden.');
       return;
     }
     
-    // Validación 2: Largo mínimo
     if (newPassword.length < 6) {
       setStatus('error');
       setMessage('La nueva contraseña debe tener al menos 6 caracteres.');
@@ -36,31 +31,27 @@ function MiCuentaPage() {
     }
 
     try {
-      // 6. Llamada al nuevo endpoint del backend
-      const response = await fetch('/api/v1/auth/change-password', {
+      // 2. CORRECCIÓN: Usar API_URL para conectar al backend
+      const response = await fetch(`${API_URL}/auth/change-password`, {
         method: 'POST',
-        headers: getAuthHeader(), // ¡Importante enviar el token!
+        headers: getAuthHeader(),
         body: JSON.stringify({ oldPassword, newPassword })
       });
       
       const data = await response.json();
 
       if (!response.ok) {
-        // Captura errores del backend (ej: "contraseña incorrecta")
         throw new Error(data.error || 'No se pudo actualizar la contraseña');
       }
 
-      // 7. Éxito
       setStatus('success');
       setMessage(data.message || 'Contraseña actualizada con éxito.');
       
-      // Limpiamos los campos
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
 
     } catch (err) {
-      // 8. Error
       setStatus('error');
       setMessage(err.message);
     }
@@ -87,7 +78,6 @@ function MiCuentaPage() {
         <form className="mi-cuenta-form">
           <div className="form-group">
             <label htmlFor="name">Nombre</label>
-            {/* Usamos 'user.nombre' que viene del login */}
             <input type="text" id="name" defaultValue={user.nombre} disabled />
           </div>
           <div className="form-group">
@@ -100,7 +90,6 @@ function MiCuentaPage() {
       <div className="mi-cuenta-box">
         <h2 className="mi-cuenta-subtitle">Cambiar Contraseña</h2>
         
-        {/* 9. Conectamos el formulario al handler */}
         <form className="mi-cuenta-form" onSubmit={handleSubmitPassword}>
           <div className="form-group">
             <label htmlFor="pass-actual">Contraseña Actual</label>
@@ -122,7 +111,6 @@ function MiCuentaPage() {
               required
             />
           </div>
-          {/* 10. Campo añadido para confirmar contraseña */}
           <div className="form-group">
             <label htmlFor="pass-confirmar">Confirmar Nueva Contraseña</label>
             <input 
@@ -134,7 +122,6 @@ function MiCuentaPage() {
             />
           </div>
 
-          {/* 11. Mostramos mensajes de estado */}
           {status === 'success' && <p className="status-message exito">{message}</p>}
           {status === 'error' && <p className="status-message error">{message}</p>}
           

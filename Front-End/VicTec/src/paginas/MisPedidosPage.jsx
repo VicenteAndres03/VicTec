@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-// 1. Importa 'isAuthenticated' y 'loadingAuth'
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config'; // <--- 1. IMPORTAR API_URL
 import './MisPedidosPage.css'; 
 
 function formatarEstado(estado) {
@@ -14,34 +14,26 @@ function MisPedidosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // 2. Obtén los estados de autenticación
   const { getAuthHeader, isAuthenticated, loadingAuth } = useAuth(); 
 
   useEffect(() => {
     const fetchPedidos = async () => {
       
-      // 3. --- INICIO DE LA CORRECCIÓN ---
-      // No hagas nada si el contexto de autenticación aún está cargando el token
       if (loadingAuth) {
         return; 
       }
 
-      // Si terminó de cargar y el resultado es que NO está autenticado,
-      // establece el error directamente sin llamar a la API.
       if (!isAuthenticated) {
         setLoading(false);
         setError('No estás autorizado. Por favor, inicia sesión.');
         return;
       }
-      // --- FIN DE LA CORRECCIÓN ---
-
-      // Si llegamos aquí, loadingAuth es false e isAuthenticated es true,
-      // por lo que getAuthHeader() definitivamente tendrá el token.
       
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/v1/pedidos', {
+        // 2. CORRECCIÓN: Usar API_URL en lugar de ruta relativa
+        const response = await fetch(`${API_URL}/pedidos`, {
           headers: getAuthHeader(), 
         });
         
@@ -64,13 +56,9 @@ function MisPedidosPage() {
 
     fetchPedidos();
   
-  // 4. Añade 'isAuthenticated' y 'loadingAuth' a las dependencias
-  //    Esto asegura que el 'useEffect' se vuelva a ejecutar cuando cambien.
   }, [getAuthHeader, isAuthenticated, loadingAuth]); 
 
-  // (El resto de la página (el 'return') no necesita cambios)
-
-  if (loading || loadingAuth) { // Muestra 'Cargando...' mientras el token o los pedidos cargan
+  if (loading || loadingAuth) {
     return (
       <main className="mis-pedidos-container">
         <h1 className="mis-pedidos-title">Mis Pedidos</h1>
