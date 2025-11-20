@@ -1,27 +1,25 @@
 package ViDev.Victec.repository;
 
 import ViDev.Victec.model.Producto; 
-import org.springframework.data.jpa.repository.EntityGraph; // <-- ¡AÑADE ESTE IMPORT!
+// 1. --- ¡Quitamos el import de EntityGraph! ---
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
-import java.util.Optional; // <-- ¡AÑADE ESTE IMPORT!
+import java.util.Optional; 
 
 @Repository 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
     
     // --- INICIO DE LA MODIFICACIÓN ---
+    // (Quitamos todos los @EntityGraph de aquí)
 
-    // Sobrescribe findById para que cargue las listas (para DetalleProductoPage)
-    @EntityGraph(attributePaths = {"comentarios", "especificaciones"})
+    // Sobrescribe findById (sin @EntityGraph)
     Optional<Producto> findById(Long id);
 
-    // Sobrescribe findAll para que cargue las listas (para HomePage y ProductosPage 'Todos')
-    @EntityGraph(attributePaths = {"comentarios", "especificaciones"})
+    // Sobrescribe findAll (sin @EntityGraph)
     List<Producto> findAll();
 
-    // Añade EntityGraph al método de categoría (para ProductosPage con filtro)
-    @EntityGraph(attributePaths = {"comentarios", "especificaciones"})
+    // Método de categoría (sin @EntityGraph)
     List<Producto> findByCategoriaIgnoreCase(String categoria);
 
     // --- FIN DE LA MODIFICACIÓN ---

@@ -2,9 +2,8 @@ package ViDev.Victec.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Lob;
-// 1. --- ¡IMPORTA Set y HashSet! ---
-import java.util.HashSet;
-import java.util.Set; 
+import java.util.HashSet; 
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
@@ -13,7 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
-// 2. --- ¡Quitamos el import de FetchType y List! ---
+// 1. --- ¡Quitamos el import de FetchType! ---
 import jakarta.persistence.Table;
 
 
@@ -25,6 +24,7 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ... (campos de nombre, marca, precio, etc.) ...
     private String nombre;
     private String marca;
     private double precio;
@@ -39,17 +39,17 @@ public class Producto {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    // 3. --- ¡CAMBIO DE List A Set! ---
+    // 2. --- ¡Quitamos el fetch = FetchType.EAGER! ---
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<Especificacion> especificaciones = new HashSet<>();
 
-    // 4. --- ¡CAMBIO DE List A Set! ---
+    // 3. --- ¡Quitamos el fetch = FetchType.EAGER! ---
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<Comentario> comentarios = new HashSet<>();
 
-    // --- Getters y Setters (¡Actualizados a Set!) ---
+    // --- Getters y Setters (actualizados a Set) ---
 
     public Long getId() {
         return id;
@@ -118,20 +118,16 @@ public class Producto {
         this.descripcion = descripcion;
     }
 
-    // 5. --- Getter actualizado a Set ---
     public Set<Especificacion> getEspecificaciones() {
         return especificaciones;
     }
-    // 6. --- Setter actualizado a Set ---
     public void setEspecificaciones(Set<Especificacion> especificaciones) {
         this.especificaciones = especificaciones;
     }
 
-    // 7. --- Getter actualizado a Set ---
     public Set<Comentario> getComentarios() {
         return comentarios;
     }
-    // 8. --- Setter actualizado a Set ---
     public void setComentarios(Set<Comentario> comentarios) {
         this.comentarios = comentarios;
     }

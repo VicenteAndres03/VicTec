@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import './ReportesPage.css'; // El CSS que ya creamos
+import { useAuth } from '../context/AuthContext'; // 1. Importar el contexto de autenticación
+import './ReportesPage.css';
 
 function ReportesPage() {
+  // 2. Obtener la función para crear los headers con el Token
+  const { getAuthHeader } = useAuth(); 
+
   const [reporte, setReporte] = useState(null);
   const [loading, setLoading] = useState(false);
   
-  // 1. Nuevo estado para el botón de PDF
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState(null);
 
-
-  // Simulación de llamada al backend para los 3 días
+  // Simulación de reporte en pantalla (sin cambios)
   const handleGenerarReporte = () => {
     setLoading(true);
     setReporte(null); 
@@ -32,29 +34,29 @@ function ReportesPage() {
     }, 1500);
   };
 
-  // --- 2. Nueva función para descargar el PDF ---
+  // --- Función Corregida para Descargar PDF ---
   const handleGenerarPDF = () => {
     setPdfLoading(true);
     setPdfError(null);
 
-    fetch('http://localhost:8080/api/v1/admin/reportes/pdf/mensual')
+    // 3. Usamos la ruta relativa y añadimos los headers con el token
+    fetch('/api/v1/admin/reportes/pdf/mensual', {
+      method: 'GET',
+      headers: getAuthHeader(), // <--- ¡ESTA ES LA CLAVE!
+    })
       .then(response => {
         if (!response.ok) {
-          throw new Error('Error al generar el PDF en el servidor.');
+          throw new Error('Error al generar el PDF. Verifica que seas Administrador.');
         }
-        return response.blob(); // Obtiene el archivo como un "blob"
+        return response.blob(); 
       })
       .then(blob => {
-        // Crea una URL temporal en el navegador para el archivo
         const url = window.URL.createObjectURL(blob);
-        
-        // Crea un enlace <a> invisible
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = 'Reporte-Mensual-VicTec.pdf'; // El nombre del archivo
+        a.download = 'Reporte-Mensual-VicTec.pdf';
         
-        // Añade el enlace al cuerpo, haz clic y remuévelo
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -64,7 +66,7 @@ function ReportesPage() {
       })
       .catch(error => {
         console.error('Error al descargar el PDF:', error);
-        setPdfError('No se pudo generar el PDF. Revisa la consola.');
+        setPdfError(error.message);
         setPdfLoading(false);
       });
   };
@@ -76,7 +78,7 @@ function ReportesPage() {
         <p className="reportes-subtitle">Genera informes de ventas y ganancias.</p>
       </div>
 
-      {/* --- Caja 1: Reporte 3 Días --- */}
+      {/* Caja 1: Reporte Pantalla */}
       <div className="reportes-box">
         <div className="reporte-generator">
           <h3>Ganancias de los últimos 3 días</h3>
@@ -89,19 +91,17 @@ function ReportesPage() {
             {loading ? 'Generando...' : 'Generar Informe'}
           </button>
         </div>
-        
-        {/* (El resultado del reporte de 3 días se muestra aquí) */}
         {reporte && ( <div className="reporte-resultado"> ... </div> )}
       </div>
 
-      {/* --- 3. Caja 2: Reporte PDF Mensual --- */}
+      {/* Caja 2: Reporte PDF Mensual */}
       <div className="reportes-box">
         <div className="reporte-generator">
           <h3>Informe Mensual (PDF)</h3>
           <p>Genera un PDF con el resumen de ganancias del mes actual.</p>
           <button 
             onClick={handleGenerarPDF} 
-            className="reporte-button pdf-button" // Botón con estilo secundario
+            className="reporte-button pdf-button"
             disabled={pdfLoading}
           >
             {pdfLoading ? 'Generando PDF...' : 'Descargar PDF Mensual'}
