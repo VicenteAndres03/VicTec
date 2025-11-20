@@ -3,6 +3,74 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './CheckoutPage.css';
 
+// --- 1. DATOS: Lista de Regiones y Comunas de Chile ---
+const REGIONES_CHILE = [
+  {
+    nombre: "Arica y Parinacota",
+    comunas: ["Arica", "Camarones", "Putre", "General Lagos"]
+  },
+  {
+    nombre: "Tarapacá",
+    comunas: ["Iquique", "Alto Hospicio", "Pozo Almonte", "Camiña", "Colchane", "Huara", "Pica"]
+  },
+  {
+    nombre: "Antofagasta",
+    comunas: ["Antofagasta", "Mejillones", "Sierra Gorda", "Taltal", "Calama", "Ollagüe", "San Pedro de Atacama", "Tocopilla", "María Elena"]
+  },
+  {
+    nombre: "Atacama",
+    comunas: ["Copiapó", "Caldera", "Tierra Amarilla", "Chañaral", "Diego de Almagro", "Vallenar", "Alto del Carmen", "Freirina", "Huasco"]
+  },
+  {
+    nombre: "Coquimbo",
+    comunas: ["La Serena", "Coquimbo", "Andacollo", "La Higuera", "Paiguano", "Vicuña", "Illapel", "Canela", "Los Vilos", "Salamanca", "Ovalle", "Combarbalá", "Monte Patria", "Punitaqui", "Río Hurtado"]
+  },
+  {
+    nombre: "Valparaíso",
+    comunas: ["Valparaíso", "Casablanca", "Concón", "Juan Fernández", "Puchuncaví", "Quintero", "Viña del Mar", "Isla de Pascua", "Los Andes", "Calle Larga", "Rinconada", "San Esteban", "La Ligua", "Cabildo", "Papudo", "Petorca", "Zapallar", "Quillota", "Calera", "Hijuelas", "La Cruz", "Nogales", "San Antonio", "Algarrobo", "Cartagena", "El Quisco", "El Tabo", "Santo Domingo", "San Felipe", "Catemu", "Llaillay", "Panquehue", "Putaendo", "Santa María", "Quilpué", "Limache", "Olmué", "Villa Alemana"]
+  },
+  {
+    nombre: "Metropolitana de Santiago",
+    comunas: ["Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Joaquín", "San Miguel", "San Ramón", "Santiago", "Vitacura", "Puente Alto", "Pirque", "San José de Maipo", "Colina", "Lampa", "Tiltil", "San Bernardo", "Buin", "Calera de Tango", "Paine", "Melipilla", "Alhué", "Curacaví", "María Pinto", "San Pedro", "Talagante", "El Monte", "Isla de Maipo", "Padre Hurtado", "Peñaflor"]
+  },
+  {
+    nombre: "Libertador General Bernardo O'Higgins",
+    comunas: ["Rancagua", "Codegua", "Coinco", "Coltauco", "Doñihue", "Graneros", "Las Cabras", "Machalí", "Malloa", "Mostazal", "Olivar", "Peumo", "Pichidegua", "Quinta de Tilcoco", "Rengo", "Requínoa", "San Vicente", "Pichilemu", "La Estrella", "Litueche", "Marchihue", "Navidad", "Paredones", "San Fernando", "Chépica", "Chimbarongo", "Lolol", "Nancagua", "Palmilla", "Peralillo", "Placilla", "Pumanque", "Santa Cruz"]
+  },
+  {
+    nombre: "Maule",
+    comunas: ["Talca", "Constitución", "Curepto", "Empedrado", "Maule", "Pelarco", "Pencahue", "Río Claro", "San Clemente", "San Rafael", "Cauquenes", "Chanco", "Pelluhue", "Curicó", "Hualañé", "Licantén", "Molina", "Rauco", "Romeral", "Sagrada Familia", "Teno", "Vichuquén", "Linares", "Colbún", "Longaví", "Parral", "Retiro", "San Javier", "Villa Alegre", "Yerbas Buenas"]
+  },
+  {
+    nombre: "Ñuble",
+    comunas: ["Chillán", "Bulnes", "Chillán Viejo", "El Carmen", "Pemuco", "Pinto", "Quillón", "San Ignacio", "Yungay", "Quirihue", "Cobquecura", "Coelemu", "Ninhue", "Portezuelo", "Ránquil", "Trehuaco", "San Carlos", "Coihueco", "Ñiquén", "San Fabián", "San Nicolás"]
+  },
+  {
+    nombre: "Biobío",
+    comunas: ["Concepción", "Coronel", "Chiguayante", "Florida", "Hualqui", "Lota", "Penco", "San Pedro de la Paz", "Santa Juana", "Talcahuano", "Tomé", "Hualpén", "Lebu", "Arauco", "Cañete", "Contulmo", "Curanilahue", "Los Álamos", "Tirúa", "Los Ángeles", "Antuco", "Cabrero", "Laja", "Mulchén", "Nacimiento", "Negrete", "Quilaco", "Quilleco", "San Rosendo", "Santa Bárbara", "Tucapel", "Yumbel", "Alto Biobío"]
+  },
+  {
+    nombre: "La Araucanía",
+    comunas: ["Temuco", "Carahue", "Cunco", "Curarrehue", "Freire", "Galvarino", "Gorbea", "Lautaro", "Loncoche", "Melipeuco", "Nueva Imperial", "Padre Las Casas", "Perquenco", "Pitrufquén", "Pucón", "Saavedra", "Teodoro Schmidt", "Toltén", "Vilcún", "Villarrica", "Cholchol", "Angol", "Collipulli", "Curacautín", "Ercilla", "Lonquimay", "Los Sauces", "Lumaco", "Purén", "Renaico", "Traiguén", "Victoria"]
+  },
+  {
+    nombre: "Los Ríos",
+    comunas: ["Valdivia", "Corral", "Lanco", "Los Lagos", "Máfil", "Mariquina", "Paillaco", "Panguipulli", "La Unión", "Futrono", "Lago Ranco", "Río Bueno"]
+  },
+  {
+    nombre: "Los Lagos",
+    comunas: ["Puerto Montt", "Calbuco", "Cochamó", "Fresia", "Frutillar", "Los Muermos", "Llanquihue", "Maullín", "Puerto Varas", "Castro", "Ancud", "Chonchi", "Curaco de Vélez", "Dalcahue", "Puqueldón", "Queilén", "Quellón", "Quemchi", "Quinchao", "Osorno", "Puerto Octay", "Purranque", "Puyehue", "Río Negro", "San Juan de la Costa", "San Pablo", "Chaitén", "Futaleufú", "Hualaihué", "Palena"]
+  },
+  {
+    nombre: "Aysén del General Carlos Ibáñez del Campo",
+    comunas: ["Coyhaique", "Lago Verde", "Aysén", "Cisnes", "Guaitecas", "Cochrane", "O'Higgins", "Tortel", "Chile Chico", "Río Ibáñez"]
+  },
+  {
+    nombre: "Magallanes y de la Antártica Chilena",
+    comunas: ["Punta Arenas", "Laguna Blanca", "Río Verde", "San Gregorio", "Cabo de Hornos (Ex Navarino)", "Antártica", "Porvenir", "Primavera", "Timaukel", "Natales", "Torres del Paine"]
+  }
+];
+
 const calcularEnvio = (subtotal) => {
   if (subtotal === 0) return 0;
   if (subtotal >= 50000) return 0;
@@ -23,13 +91,14 @@ function CheckoutPage() {
     nombre: '',
     apellido: '',
     direccion: '',
-    ciudad: '',
-    region: '',
+    region: '',       // Nuevo: se llenará con el select
+    ciudad: '',       // Nuevo: actuará como Comuna
     codigoPostal: '',
     telefono: '',
-    // 1. --- MODIFICACIÓN ---
-    // 'metodoPago' siempre será 'webpay' y no necesita 'onChange'
   });
+
+  // --- 2. Estado para las comunas disponibles según la región ---
+  const [comunasDisponibles, setComunasDisponibles] = useState([]);
 
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
@@ -102,16 +171,36 @@ function CheckoutPage() {
     fetchCarrito();
   }, [isAuthenticated, getAuthHeader, navigate, user, isTokenValid, logout, loadingAuth]);
 
-  // 2. --- MODIFICACIÓN ---
-  // Ya no necesitamos 'handleChange' para el método de pago
+  // --- 3. MODIFICACIÓN: HANDLE CHANGE ---
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'region') {
+      // Si cambia la región, actualizamos comunas disponibles y reseteamos la ciudad
+      const regionSeleccionada = REGIONES_CHILE.find(r => r.nombre === value);
+      setComunasDisponibles(regionSeleccionada ? regionSeleccionada.comunas : []);
+      setFormData(prev => ({ ...prev, region: value, ciudad: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // --- 4. VALIDACIONES DE SEGURIDAD ---
+    if (formData.direccion.trim().length < 5) {
+      setError('Por favor ingresa una dirección válida y completa (Calle y número).');
+      setStatus('error');
+      return;
+    }
+    
+    if (!formData.region || !formData.ciudad) {
+      setError('Debes seleccionar una Región y una Comuna.');
+      setStatus('error');
+      return;
+    }
+
     if (!isTokenValid()) {
       setError('Tu sesión expiró. Por favor, inicia sesión nuevamente.');
       setStatus('error');
@@ -127,13 +216,14 @@ function CheckoutPage() {
     setError(null);
 
     try {
+      // Guardamos la dirección con la región y comuna seleccionadas
       const direccionResponse = await fetch('/api/v1/direcciones', {
         method: 'POST',
         headers: getAuthHeader(),
         body: JSON.stringify({
           calle: formData.direccion,
-          ciudad: formData.ciudad,
-          region: formData.region,
+          ciudad: formData.ciudad, // Aquí va la Comuna
+          region: formData.region, // Aquí va la Región
           codigoPostal: formData.codigoPostal,
           pais: 'Chile' 
         }),
@@ -145,10 +235,6 @@ function CheckoutPage() {
       }
       
       const direccionData = await direccionResponse.json();
-
-      // 3. --- MODIFICACIÓN ---
-      // Eliminamos el 'if (formData.metodoPago === 'transferencia')'
-      // Ahora siempre va a Mercado Pago
       
       const authHeaders = getAuthHeader();
       if (!authHeaders.Authorization) {
@@ -240,7 +326,6 @@ function CheckoutPage() {
                 </div>
               )}
             
-            {/* ... (Formulario de contacto y dirección sin cambios) ... */}
             <div className="form-section">
               <h2>Información de Contacto</h2>
               <div className="form-group">
@@ -250,7 +335,7 @@ function CheckoutPage() {
             </div>
             <div className="form-section">
               <h2>Dirección de Envío</h2>
-              {/* ... (campos de dirección sin cambios) ... */}
+              
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="nombre">Nombre</label>
@@ -261,24 +346,69 @@ function CheckoutPage() {
                   <input type="text" id="apellido" name="apellido" value={formData.apellido} onChange={handleChange} required />
                 </div>
               </div>
-              <div className="form-group">
-                <label htmlFor="direccion">Dirección</label>
-                <input type="text" id="direccion" name="direccion" placeholder="Calle, número, depto..." value={formData.direccion} onChange={handleChange} required />
-              </div>
+
+              {/* --- 5. NUEVOS SELECTORES DE REGIÓN Y COMUNA --- */}
               <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="ciudad">Ciudad</label>
-                  <input type="text" id="ciudad" name="ciudad" value={formData.ciudad} onChange={handleChange} required />
-                </div>
                 <div className="form-group">
                   <label htmlFor="region">Región</label>
-                  <input type="text" id="region" name="region" value={formData.region} onChange={handleChange} required />
+                  <select 
+                    id="region" 
+                    name="region" 
+                    value={formData.region} 
+                    onChange={handleChange} 
+                    required
+                    style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f9f9f9' }}
+                  >
+                    <option value="">Selecciona una Región</option>
+                    {REGIONES_CHILE.map((reg) => (
+                      <option key={reg.nombre} value={reg.nombre}>
+                        {reg.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="ciudad">Comuna</label>
+                  <select 
+                    id="ciudad" 
+                    name="ciudad" 
+                    value={formData.ciudad} 
+                    onChange={handleChange} 
+                    required
+                    disabled={!formData.region}
+                    style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid #ccc', backgroundColor: '#f9f9f9' }}
+                  >
+                    <option value="">Selecciona una Comuna</option>
+                    {comunasDisponibles.map((comuna) => (
+                      <option key={comuna} value={comuna}>
+                        {comuna}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
+
+              <div className="form-group">
+                <label htmlFor="direccion">Calle y Número</label>
+                <input 
+                  type="text" 
+                  id="direccion" 
+                  name="direccion" 
+                  placeholder="Ej: Av. Providencia 1234, Depto 301" 
+                  value={formData.direccion} 
+                  onChange={handleChange} 
+                  required 
+                />
+                 <small style={{color: '#666', marginTop: '5px'}}>
+                  * Incluye nombre de calle y numeración exacta.
+                </small>
+              </div>
+              
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="codigoPostal">Código Postal</label>
-                  <input type="text" id="codigoPostal" name="codigoPostal" value={formData.codigoPostal} onChange={handleChange} required />
+                  <label htmlFor="codigoPostal">Código Postal (Opcional)</label>
+                  <input type="text" id="codigoPostal" name="codigoPostal" value={formData.codigoPostal} onChange={handleChange} />
                 </div>
                 <div className="form-group">
                   <label htmlFor="telefono">Teléfono</label>
@@ -290,25 +420,19 @@ function CheckoutPage() {
             <div className="form-section">
               <h2>Método de Pago</h2>
               <div className="payment-options">
-                {/* 4. --- MODIFICACIÓN --- */}
-                {/* Dejamos solo la opción de Webpay, y la marcamos como seleccionada y deshabilitada */}
                 <label className="payment-option selected">
                   <input type="radio" name="metodoPago" value="webpay" checked={true} readOnly />
                   Webpay / MercadoPago (Crédito/Débito)
                 </label>
-                {/* La opción de transferencia se elimina */}
               </div>
             </div>
 
-            {/* 5. --- MODIFICACIÓN --- */}
-            {/* El texto del botón ahora es siempre "Ir a Pagar" */}
             <button type="submit" className="checkout-submit-button" disabled={status === 'submitting'}>
               {status === 'submitting' ? 'Procesando...' : 'Ir a Pagar'}
             </button>
           </form>
         </div>
 
-        {/* ... (Resumen del pedido sin cambios) ... */}
         <div className="checkout-summary-section">
           <div className="checkout-summary">
             <h3>Resumen del Pedido</h3>
