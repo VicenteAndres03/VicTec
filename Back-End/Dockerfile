@@ -16,5 +16,6 @@ COPY --from=build /app/target/Victec-0.0.1-SNAPSHOT.jar app.jar
 # Exponemos el puerto 8080
 EXPOSE 8080
 
-# --- CAMBIO AQUÍ: Añadimos -Djava.net.preferIPv4Stack=true ---
+# --- CAMBIO CRÍTICO: Añadimos -Djava.net.preferIPv4Stack=true ---
+# Esto evita que Gmail se cuelgue intentando usar IPv6
 ENTRYPOINT ["java", "-Djava.net.preferIPv4Stack=true", "-jar", "app.jar"]
