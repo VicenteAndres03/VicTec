@@ -16,5 +16,5 @@ COPY --from=build /app/target/Victec-0.0.1-SNAPSHOT.jar app.jar
 # Exponemos el puerto 8080
 EXPOSE 8080
 
-# Comando para iniciar la app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# --- CAMBIO AQUÍ: Añadimos -Djava.net.preferIPv4Stack=true ---
+ENTRYPOINT ["java", "-Djava.net.preferIPv4Stack=true", "-jar", "app.jar"]
