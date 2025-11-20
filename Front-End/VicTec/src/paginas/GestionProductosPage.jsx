@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config'; // <--- 1. IMPORTAMOS LA URL DEL BACKEND
 import './GestionProductosPage.css';
 
 // --- Estado inicial para el formulario ---
@@ -17,8 +18,6 @@ const formularioVacio = {
   descripcion: ''
 };
 
-// --- INICIO DE LA MODIFICACIÓN ---
-// ¡Lista de categorías actualizada!
 const CATEGORIAS_DISPONIBLES = [
   { valor: 'Audio', texto: 'Audio (Audífonos, Parlantes)' },
   { valor: 'Smartwatch', texto: 'Smartwatches y Wearables' },
@@ -26,7 +25,6 @@ const CATEGORIAS_DISPONIBLES = [
   { valor: 'Drones', texto: 'Drones y Accesorios' },
   { valor: 'Accesorios', texto: 'Accesorios (Cables, Cargadores)' },
 ];
-// --- FIN DE LA MODIFICACIÓN ---
 
 function GestionProductosPage() {
   const [productos, setProductos] = useState([]);
@@ -43,7 +41,9 @@ function GestionProductosPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/v1/productos'); 
+      // 2. CORRECCIÓN: Usamos API_URL en lugar de ruta relativa
+      const response = await fetch(`${API_URL}/productos`); 
+      
       if (!response.ok) throw new Error('No se pudieron cargar los productos');
       const data = await response.json();
       setProductos(data);
@@ -72,7 +72,12 @@ function GestionProductosPage() {
     setFormError(null);
 
     const esNuevo = modoForm === 'nuevo';
-    const url = esNuevo ? '/api/v1/productos' : `/api/v1/productos/${productoActual.id}`;
+    
+    // 3. CORRECCIÓN: Usamos API_URL para guardar/actualizar
+    const url = esNuevo 
+      ? `${API_URL}/productos` 
+      : `${API_URL}/productos/${productoActual.id}`;
+      
     const method = esNuevo ? 'POST' : 'PUT';
 
     try {
@@ -83,7 +88,7 @@ function GestionProductosPage() {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
+        const errData = await response.json().catch(() => ({ message: 'Error desconocido' }));
         throw new Error(errData.message || 'Error al guardar el producto');
       }
 
@@ -116,7 +121,8 @@ function GestionProductosPage() {
   const handleEliminar = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
       try {
-        const response = await fetch(`/api/v1/productos/${id}`, {
+        // 4. CORRECCIÓN: Usamos API_URL para eliminar
+        const response = await fetch(`${API_URL}/productos/${id}`, {
           method: 'DELETE',
           headers: getAuthHeader(), 
         });
@@ -185,7 +191,6 @@ function GestionProductosPage() {
               <input type="url" id="imgUrl" name="imgUrl" placeholder="https://ejemplo.com/imagen.png" value={productoActual.imgUrl} onChange={handleInputChange} required />
             </div>
              
-             {/* El <select> ahora leerá la nueva lista de categorías */}
              <div className="form-group-admin">
               <label htmlFor="categoria">Categoría</label>
               <select 
