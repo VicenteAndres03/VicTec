@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class PaymentService {
@@ -38,8 +37,6 @@ public class PaymentService {
         }
 
         List<PreferenceItemRequest> items = new ArrayList<>();
-        
-        // --- INICIO DE LA MODIFICACIÓN ---
 
         // 1. Calcular el subtotal de los productos
         BigDecimal subtotal = BigDecimal.ZERO;
@@ -65,7 +62,7 @@ public class PaymentService {
             subtotal = subtotal.add(itemPrice.multiply(new BigDecimal(quantity)));
         }
 
-        // 2. Definir la lógica de envío (debe ser IDÉNTICA a la del frontend)
+        // 2. Definir la lógica de envío (IDÉNTICA a la del frontend)
         BigDecimal costoEnvio = BigDecimal.ZERO;
         if (subtotal.compareTo(BigDecimal.ZERO) > 0) { // si subtotal > 0
             if (subtotal.compareTo(new BigDecimal("50000")) >= 0) { // >= 50000
@@ -78,7 +75,6 @@ public class PaymentService {
         }
 
         // 3. Añadir el envío como un item más a Mercado Pago
-        // (Si el envío es gratis, simplemente no se añade)
         if (costoEnvio.compareTo(BigDecimal.ZERO) > 0) {
             PreferenceItemRequest envioItem = PreferenceItemRequest.builder()
                     .id("envio")
@@ -89,13 +85,12 @@ public class PaymentService {
                     .build();
             items.add(envioItem);
         }
-        
-        // --- FIN DE LA MODIFICACIÓN ---
 
         if (items.isEmpty()) {
             throw new IllegalArgumentException("No se pudieron crear items para la preferencia");
         }
 
+        // Referencia externa para identificar el pedido en el Webhook
         String externalRef = String.format(
             "{\"userId\":%d, \"cartId\":%d, \"addressId\":%d}", 
             carrito.getUsuario().getId(), 
@@ -103,14 +98,17 @@ public class PaymentService {
             direccionId
         );
 
+        // --- CONFIGURACIÓN DE PREFERENCIA ---
         PreferenceRequest request = PreferenceRequest.builder()
-                .items(items) // <-- Esta lista 'items' AHORA INCLUYE EL ENVÍO
+                .items(items)
                 .externalReference(externalRef) 
                 .backUrls(PreferenceBackUrlsRequest.builder()
-                        .success("http://localhost:5173/compra-exitosa")
-                        .failure("http://localhost:5173/checkout")
-                        .pending("http://localhost:5173/pago-pendiente")
+                        // CAMBIO IMPORTANTE: Apuntamos a Netlify (Nube)
+                        .success("https://victec.netlify.app/compra-exitosa")
+                        .failure("https://victec.netlify.app/checkout")
+                        .pending("https://victec.netlify.app/checkout") 
                         .build())
+                .autoReturn("approved") // Devuelve al usuario automáticamente si se aprueba
                 .build();
 
         PreferenceClient client = new PreferenceClient();
