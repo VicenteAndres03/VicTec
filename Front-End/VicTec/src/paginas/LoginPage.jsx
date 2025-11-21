@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google'; // <--- Importar Google
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config'; // <--- Importar
+import API_URL from '../config'; 
 import './LoginPage.css';
 
 function LoginPage() {
@@ -13,13 +14,13 @@ function LoginPage() {
 
   const { login } = useAuth();
 
+  // --- LOGIN NORMAL (Email/Pass) ---
   const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus('submitting');
     setError(null);
 
     try {
-      // Usamos API_URL
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -29,18 +30,14 @@ function LoginPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => {
-          return response.text();
-        });
-        throw new Error(errorData.error || errorData.message || 'Error al iniciar sesión');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Error al iniciar sesión');
       }
 
       const data = await response.json();
       const { token, ...userData } = data;
       
-      if (!token) {
-        throw new Error('No se recibió el token del servidor');
-      }
+      if (!token) throw new Error('No se recibió el token del servidor');
       
       login(userData, token);
       navigate('/');
@@ -49,6 +46,39 @@ function LoginPage() {
       setStatus('error');
       setError(err.message);
     }
+  };
+
+  // --- LOGIN CON GOOGLE (Nuevo) ---
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setStatus('submitting');
+    setError(null);
+    
+    try {
+      const response = await fetch(`${API_URL}/auth/google-login`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: credentialResponse.credential }) 
+      });
+      
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error en el inicio de sesión con Google');
+      }
+      
+      const { token, ...userData } = data;
+      login(userData, token); 
+      navigate('/'); // Redirigir al inicio
+      
+    } catch (err) {
+      setStatus('error');
+      setError(err.message);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setStatus('error');
+    setError('El inicio de sesión con Google falló.');
   };
 
   return (
@@ -66,22 +96,28 @@ function LoginPage() {
 
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input type="email" id="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={status === 'submitting'} />
           </div>
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
-            <input type="password" id="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
-          
-          <div className="form-options">
-            <a href="/forgot-password" className="forgot-password-link">
-              ¿Olvidaste tu contraseña?
-            </a>
+            <input type="password" id="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={status === 'submitting'} />
           </div>
           
           <button type="submit" className="login-button" disabled={status === 'submitting'}>
             {status === 'submitting' ? 'Ingresando...' : 'Ingresar'}
           </button>
+
+          {/* --- BOTÓN DE GOOGLE --- */}
+          <div className="google-divider"><span>O ingresa con</span></div>
+          <div className="google-login-container">
+            <GoogleLogin 
+              onSuccess={handleGoogleSuccess} 
+              onError={handleGoogleError} 
+              useOneTap 
+              theme="filled_blue"
+              shape="pill"
+            />
+          </div>
 
           <p className="register-link-text">
             ¿No tienes una cuenta?{' '}

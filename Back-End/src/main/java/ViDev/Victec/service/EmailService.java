@@ -1,6 +1,7 @@
 package ViDev.Victec.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -12,16 +13,19 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    // Esta etiqueta es la MAGIA. Hace que este método se ejecute 
-    // en un hilo separado, liberando al usuario inmediatamente.
+    // Inyectamos el correo configurado para usarlo como remitente
+    @Value("${spring.mail.username}")
+    private String remitente;
+
     @Async 
     public void enviarCorreoSoporte(String nombre, String emailCliente, String mensaje) {
         try {
-            // Simulación de espera (para que veas que no afecta al usuario)
-            // Thread.sleep(1000); 
-
             SimpleMailMessage email = new SimpleMailMessage();
-            email.setTo("vixdeev@gmail.com"); // Tu correo
+            
+            // Es importante establecer el 'From' igual al usuario autenticado
+            email.setFrom(remitente); 
+            
+            email.setTo("vixdeev@gmail.com"); 
             email.setSubject("Nuevo Mensaje de Soporte de: " + nombre);
             
             String textoMensaje = String.format(
@@ -35,12 +39,10 @@ public class EmailService {
             email.setText(textoMensaje);
             mailSender.send(email);
             
-            System.out.println("✅ Email de soporte enviado en segundo plano.");
+            System.out.println("✅ Email de soporte enviado correctamente a vixdeev@gmail.com");
 
         } catch (Exception e) {
-            // Como es asíncrono, si falla aquí el usuario no se entera, 
-            // por lo que es vital dejar registro en el log.
-            System.err.println("❌ Error enviando email async: " + e.getMessage());
+            System.err.println("❌ Error CRÍTICO enviando email: " + e.getMessage());
             e.printStackTrace();
         }
     }

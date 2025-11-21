@@ -175,3 +175,31 @@
 .admin-link:hover {
   text-decoration: underline;
 }
+
+.google-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #aaa;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 1.5rem 0 1rem 0;
+}
+
+.google-divider::before,
+.google-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #eee;
+}
+
+.google-divider span {
+  padding: 0 10px;
+}
+
+.google-login-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config'; // <--- Importar
+import API_URL from '../config'; 
 import './CarritoPage.css';
 
+// --- LÓGICA DE ENVÍO ACTUALIZADA ---
 const calcularEnvio = (subtotal) => {
   if (subtotal === 0) return 0;
-  if (subtotal >= 50000) return 0;
-  if (subtotal >= 25000) return 1990;
-  return 3500;
+  if (subtotal >= 50000) return 0; // Envío gratis sobre 50.000
+  return 1000; // Tarifa plana de 1.000 para todo lo demás
 };
 
 function CarritoPage() {
@@ -27,7 +27,6 @@ function CarritoPage() {
       try {
         setLoading(true);
         setError(null);
-        // Usamos API_URL
         const response = await fetch(`${API_URL}/carrito`, {
           headers: getAuthHeader(),
         });
@@ -64,7 +63,6 @@ function CarritoPage() {
 
   const handleRemoveItem = async (productoId) => {
     try {
-      // Usamos API_URL
       const response = await fetch(`${API_URL}/carrito/remove/${productoId}`, {
         method: 'DELETE',
         headers: getAuthHeader(),
@@ -87,7 +85,6 @@ function CarritoPage() {
     }
 
     try {
-      // Usamos API_URL
       const response = await fetch(`${API_URL}/carrito/update-cantidad`, {
         method: 'PUT',
         headers: getAuthHeader(),
@@ -138,7 +135,7 @@ function CarritoPage() {
           return (
             <div className="cart-item" key={item.id}> 
               <div className="cart-item-image">
-                <img src={item.producto.imgUrl || ''} alt={item.producto.nombre} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                <img src={item.producto.imgUrl || ''} alt={item.producto.nombre} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px'}} />
               </div>
               <div className="cart-item-details">
                 <span className="cart-item-brand">{item.producto.marca}</span>
@@ -163,7 +160,7 @@ function CarritoPage() {
       <div className="cart-summary">
         <h3>Resumen de tu Pedido</h3>
         <div className="summary-row"><span>Subtotal</span><span>CLP${subtotal.toLocaleString('es-CL')}</span></div>
-        <div className="summary-row"><span>Envío (Estimado)</span><span>{envio === 0 ? 'Gratis' : `CLP$${envio.toLocaleString('es-CL')}`}</span></div>
+        <div className="summary-row"><span>Envío</span><span>{envio === 0 ? 'Gratis' : `CLP$${envio.toLocaleString('es-CL')}`}</span></div>
         <div className="summary-divider"></div>
         <div className="summary-row total"><span>Total</span><span>CLP${total.toLocaleString('es-CL')}</span></div>
         {items.length > 0 && <Link to="/checkout" className="checkout-button">Proceder al Pago</Link>}

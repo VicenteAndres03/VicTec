@@ -62,15 +62,15 @@ public class PaymentService {
             subtotal = subtotal.add(itemPrice.multiply(new BigDecimal(quantity)));
         }
 
-        // 2. Definir la lógica de envío (IDÉNTICA a la del frontend)
+        // 2. Lógica de Envío Actualizada (Coincide con Frontend)
         BigDecimal costoEnvio = BigDecimal.ZERO;
-        if (subtotal.compareTo(BigDecimal.ZERO) > 0) { // si subtotal > 0
-            if (subtotal.compareTo(new BigDecimal("50000")) >= 0) { // >= 50000
-                costoEnvio = BigDecimal.ZERO; // Envío gratis
-            } else if (subtotal.compareTo(new BigDecimal("25000")) >= 0) { // >= 25000
-                costoEnvio = new BigDecimal("1990"); // Envío reducido
+        if (subtotal.compareTo(BigDecimal.ZERO) > 0) { 
+            if (subtotal.compareTo(new BigDecimal("50000")) >= 0) { 
+                // Envío GRATIS si es mayor o igual a 50.000
+                costoEnvio = BigDecimal.ZERO; 
             } else {
-                costoEnvio = new BigDecimal("3500"); // Envío estándar
+                // Tarifa plana de 1.000 para cualquier otro caso
+                costoEnvio = new BigDecimal("1000"); 
             }
         }
 

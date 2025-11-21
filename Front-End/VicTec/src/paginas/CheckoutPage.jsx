@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config'; // <--- Importar
+import API_URL from '../config'; 
 import './CheckoutPage.css';
 
-// (Datos de regiones y función calcularEnvio igual que antes, se mantienen aquí)
 const REGIONES_CHILE = [
   { nombre: "Arica y Parinacota", comunas: ["Arica", "Camarones", "Putre", "General Lagos"] },
   { nombre: "Tarapacá", comunas: ["Iquique", "Alto Hospicio", "Pozo Almonte", "Camiña", "Huara", "Pica"] },
@@ -12,7 +11,17 @@ const REGIONES_CHILE = [
   { nombre: "Atacama", comunas: ["Copiapó", "Caldera", "Vallenar", "Huasco"] },
   { nombre: "Coquimbo", comunas: ["La Serena", "Coquimbo", "Vicuña", "Illapel", "Los Vilos", "Ovalle"] },
   { nombre: "Valparaíso", comunas: ["Valparaíso", "Viña del Mar", "Quilpué", "Villa Alemana", "San Antonio", "Quillota", "Los Andes", "San Felipe"] },
-  { nombre: "Metropolitana de Santiago", comunas: ["Santiago", "Providencia", "Las Condes", "Maipú", "Puente Alto", "La Florida", "Ñuñoa", "San Bernardo", "Estación Central", "Vitacura", "Lo Barnechea", "Peñalolén", "Macul", "San Miguel"] },
+  { 
+    nombre: "Metropolitana de Santiago", 
+    comunas: [
+      "Alhué", "Buin", "Calera de Tango", "Cerrillos", "Cerro Navia", "Colina", "Conchalí", "Curacaví", "El Bosque", "El Monte", 
+      "Estación Central", "Huechuraba", "Independencia", "Isla de Maipo", "La Cisterna", "La Florida", "La Granja", "La Pintana", 
+      "La Reina", "Lampa", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "María Pinto", "Melipilla", 
+      "Ñuñoa", "Padre Hurtado", "Paine", "Pedro Aguirre Cerda", "Peñaflor", "Peñalolén", "Pirque", "Providencia", "Pudahuel", 
+      "Puente Alto", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Bernardo", "San Joaquín", "San José de Maipo", 
+      "San Miguel", "San Pedro", "San Ramón", "Santiago", "Talagante", "Til Til", "Vitacura"
+    ].sort() 
+  },
   { nombre: "Libertador General Bernardo O'Higgins", comunas: ["Rancagua", "Machalí", "San Fernando", "Santa Cruz", "Pichilemu"] },
   { nombre: "Maule", comunas: ["Talca", "Curicó", "Linares", "Constitución", "Cauquenes"] },
   { nombre: "Ñuble", comunas: ["Chillán", "San Carlos", "Quillón"] },
@@ -24,11 +33,11 @@ const REGIONES_CHILE = [
   { nombre: "Magallanes y de la Antártica Chilena", comunas: ["Punta Arenas", "Natales", "Porvenir"] }
 ];
 
+// --- LÓGICA DE ENVÍO ACTUALIZADA ---
 const calcularEnvio = (subtotal) => {
   if (subtotal === 0) return 0;
-  if (subtotal >= 50000) return 0;
-  if (subtotal >= 25000) return 1990;
-  return 3500;
+  if (subtotal >= 50000) return 0; // Envío gratis
+  return 1000; // Tarifa plana de 1.000
 };
 
 function CheckoutPage() {
@@ -69,7 +78,6 @@ function CheckoutPage() {
       try {
         setLoadingCart(true);
         setCartError(null);
-        // Usamos API_URL
         const response = await fetch(`${API_URL}/carrito`, { headers: getAuthHeader() });
         
         if (response.status === 401 || response.status === 403) {
@@ -99,6 +107,13 @@ function CheckoutPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'telefono') {
+      const soloNumeros = value.replace(/[^0-9+]/g, '');
+      setFormData(prev => ({ ...prev, [name]: soloNumeros }));
+      return; 
+    }
+
     if (name === 'region') {
       const regionSeleccionada = REGIONES_CHILE.find(r => r.nombre === value);
       setComunasDisponibles(regionSeleccionada ? regionSeleccionada.comunas : []);
@@ -110,26 +125,53 @@ function CheckoutPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setStatus('submitting'); 
+    setError(null);
     
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Por favor, ingresa un correo electrónico válido.');
+      setStatus('error');
+      return;
+    }
+
+    if (formData.telefono.length < 9) {
+      setError('El teléfono debe tener al menos 9 dígitos (Ej: 912345678).');
+      setStatus('error');
+      return;
+    }
+
+    if (formData.nombre.trim().length < 2 || formData.apellido.trim().length < 2) {
+      setError('Por favor ingresa un nombre y apellido válidos.');
+      setStatus('error');
+      return;
+    }
+
     if (formData.direccion.trim().length < 5) {
-      setError('Ingresa una dirección válida y completa.'); setStatus('error'); return;
+      setError('Ingresa una dirección válida y completa.'); 
+      setStatus('error'); 
+      return;
     }
+
     if (!formData.region || !formData.ciudad) {
-      setError('Debes seleccionar una Región y una Comuna.'); setStatus('error'); return;
+      setError('Debes seleccionar una Región y una Comuna.'); 
+      setStatus('error'); 
+      return;
     }
+
     if (!isTokenValid()) {
-      setError('Tu sesión expiró.'); setStatus('error');
+      setError('Tu sesión expiró.'); 
+      setStatus('error');
       setTimeout(() => navigate('/login', { replace: true }), 2000);
       return;
     }
     if (cartItems.length === 0) {
-      setError('Tu carrito está vacío'); setStatus('error'); return;
+      setError('Tu carrito está vacío'); 
+      setStatus('error'); 
+      return;
     }
-    setStatus('submitting');
-    setError(null);
 
     try {
-      // Guardar Dirección en Nube
       const direccionResponse = await fetch(`${API_URL}/direcciones`, {
         method: 'POST',
         headers: getAuthHeader(),
@@ -145,7 +187,6 @@ function CheckoutPage() {
       if (!direccionResponse.ok) throw new Error('Error al guardar la dirección');
       const direccionData = await direccionResponse.json();
       
-      // Crear Pedido en Nube
       const response = await fetch(`${API_URL}/pedidos/crear-y-pagar`, {
         method: 'POST',
         headers: getAuthHeader(),
@@ -158,7 +199,7 @@ function CheckoutPage() {
       if (!preferenceData.init_point) throw new Error('No se recibió la URL de pago');
 
       sessionStorage.setItem('leavingForPayment', 'true');
-      window.location.href = preferenceData.init_point; // Ir a Mercado Pago
+      window.location.href = preferenceData.init_point; 
 
     } catch (err) {
       setStatus('error');
@@ -211,7 +252,19 @@ function CheckoutPage() {
                 <div className="form-group"><label>Calle y Número</label><input type="text" name="direccion" placeholder="Ej: Av. Providencia 1234" value={formData.direccion} onChange={handleChange} required /></div>
                 <div className="form-row">
                   <div className="form-group"><label>Código Postal</label><input type="text" name="codigoPostal" value={formData.codigoPostal} onChange={handleChange} /></div>
-                  <div className="form-group"><label>Teléfono</label><input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} required /></div>
+                  
+                  <div className="form-group">
+                    <label>Teléfono</label>
+                    <input 
+                      type="tel" 
+                      name="telefono" 
+                      value={formData.telefono} 
+                      onChange={handleChange} 
+                      placeholder="9 1234 5678"
+                      required 
+                    />
+                  </div>
+
                 </div>
               </div>
 

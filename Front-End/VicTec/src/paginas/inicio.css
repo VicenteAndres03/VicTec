@@ -1,4 +1,4 @@
-/* --- Estilos del Hero Banner (MODIFICADO) --- */
+/* --- Estilos del Hero Banner --- */
 .hero-container {
   background-image: url('../assets/Gemini_Generated_Image_tfew76tfew76tfew.png');
   background-size: cover;
@@ -47,32 +47,63 @@
 }
 
 
-/* --- Estilos de la Barra de Iconos --- */
+/* --- Estilos de la Barra de Iconos (MEJORADO) --- */
 .icon-bar-container {
-  background-color: var(--color-fondo-claro); 
-  padding: 2.5rem 2rem;
+  background-color: #ffffff; /* Fondo blanco limpio */
+  padding: 3rem 2rem;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between; /* Espacio uniforme */
   align-items: center;
   max-width: 1400px;
   margin: 0 auto;
   border-bottom: 1px solid #eee;
+  flex-wrap: wrap; /* Para que se adapte en pantallas pequeñas */
+  gap: 2rem;
 }
 
 .icon-item {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
+  align-items: center; /* Alinea ícono y texto horizontalmente */
+  gap: 1rem;
+  flex: 1; /* Ocupan el mismo ancho */
+  min-width: 220px; /* Ancho mínimo para que no se aplasten */
+  justify-content: center; /* Centrado visual */
 }
 
 .icon-placeholder {
   font-size: 2.5rem;
+  /* Usamos un fondo suave circular para el ícono */
+  background-color: #f0fdf4; 
   color: var(--color-primario);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* Círculo perfecto */
+  flex-shrink: 0; /* Evita que el ícono se achique */
 }
+
+.icon-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.icon-text h4 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #222;
+  margin: 0 0 0.2rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.icon-text span {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
 
 /* --- Estilos de Categorías Destacadas --- */
 .featured-container {
@@ -89,8 +120,8 @@
   margin-bottom: 0.5rem;
   border-left: 5px solid var(--color-secundario); /* Línea naranja */
   padding-left: 1rem;
-  margin-top: 0; /* Añadido */
-  margin-bottom: 2rem; /* Añadido */
+  margin-top: 0; 
+  margin-bottom: 2rem; 
 }
 
 .featured-grid {
@@ -99,7 +130,7 @@
   gap: 1.5rem;
 }
 
-/* --- INICIO DE LA MODIFICACIÓN DE ESTILOS DE TARJETA --- */
+/* --- Estilos de Tarjeta --- */
 
 .product-card {
   border: 1px solid #eee;
@@ -107,8 +138,6 @@
   overflow: hidden;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
   text-decoration: none; /* Quitamos subrayado del Link */
-  
-  /* 1. Hacemos que la tarjeta use flexbox en columna */
   display: flex;
   flex-direction: column;
 }
@@ -129,7 +158,6 @@
   font-size: 1rem;
 }
 
-/* 2. ¡AQUÍ ESTÁ EL ARREGLO PARA LA IMAGEN! */
 .product-image-real {
   width: 100%;
   height: 100%;
@@ -148,7 +176,6 @@
   font-weight: bold;
 }
 
-/* 3. Contenedor para la info, para alinear todo */
 .product-info {
   padding: 1rem;
   display: flex;
@@ -160,11 +187,11 @@
   font-size: 1.1rem;
   font-weight: 600;
   color: #222;
-  margin: 0 0 0.5rem 0; /* Ajustado */
+  margin: 0 0 0.5rem 0;
 }
 
 .product-price {
-  padding: 0 0 0.5rem 0; /* Ajustado */
+  padding: 0 0 0.5rem 0;
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
@@ -187,9 +214,8 @@
   font-size: 0.8rem;
   color: #aaa;
   padding: 0;
-  margin-top: auto; /* 4. Esto empuja la marca al fondo */
+  margin-top: auto; /* Empuja la marca al fondo */
 }
-/* --- FIN DE LA MODIFICACIÓN DE ESTILOS DE TARJETA --- */
 
 
 /* --- Responsive para Móvil --- */
@@ -205,9 +231,14 @@
     font-size: 2.5rem;
   }
   
+  /* Ajustes para la barra de íconos en móvil */
   .icon-bar-container {
-    flex-wrap: wrap; 
-    gap: 1.5rem;
+    justify-content: center; /* Centrados en móvil */
+  }
+  
+  .icon-item {
+    flex: 1 1 40%; /* En tablet/móvil ocupan casi la mitad o todo el ancho */
+    justify-content: flex-start; /* Alineados a la izquierda en móvil para leer mejor */
   }
   
   .featured-grid {
@@ -218,5 +249,9 @@
 @media (max-width: 500px) {
   .featured-grid {
     grid-template-columns: 1fr; /* 1 columna en celular */
+  }
+  
+  .icon-item {
+    flex: 1 1 100%; /* En celular ocupan todo el ancho */
   }
 }

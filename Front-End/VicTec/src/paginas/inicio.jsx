@@ -12,7 +12,6 @@ function HeroBanner() {
           <h1 className="hero-title">
             INNOVACIÓN QUE <br /> IMPULSA TU MUNDO
           </h1>
-          {/* CORRECCIÓN: Usamos Link para evitar recargar la página y el error 404 */}
           <Link to="/productos" className="hero-button">
             DESCUBRIR PRODUCTOS
           </Link>
@@ -22,25 +21,44 @@ function HeroBanner() {
   );
 }
 
-// --- Sección 2: Barra de Iconos ---
+// --- Sección 2: Barra de Iconos (MEJORADA) ---
 function IconBar() {
   return (
     <section className="icon-bar-container">
-      <div className="icon-item">
-        <span className="icon-placeholder">🖥️</span>
-        <p>Llevavida</p>
-      </div>
-      <div className="icon-item">
-        <span className="icon-placeholder">💳</span>
-        <p>Descuento / Cuota</p>
-      </div>
+      {/* Ítem 1: Logística */}
       <div className="icon-item">
         <span className="icon-placeholder">🚚</span>
-        <p>Centros de envío</p>
+        <div className="icon-text">
+          <h4>Envíos a todo Chile</h4>
+          <span>Rápidos y asegurados</span>
+        </div>
       </div>
+
+      {/* Ítem 2: Seguridad de Pago */}
       <div className="icon-item">
-        <span className="icon-placeholder">⚙️</span>
-        <p>Servicio Técnico</p>
+        <span className="icon-placeholder">🛡️</span>
+        <div className="icon-text">
+          <h4>Compra Segura</h4>
+          <span>Protección SSL y Webpay</span>
+        </div>
+      </div>
+
+      {/* Ítem 3: Calidad/Garantía */}
+      <div className="icon-item">
+        <span className="icon-placeholder">✅</span>
+        <div className="icon-text">
+          <h4>Garantía VicTec</h4>
+          <span>Calidad certificada</span>
+        </div>
+      </div>
+
+      {/* Ítem 4: Atención al Cliente */}
+      <div className="icon-item">
+        <span className="icon-placeholder">🎧</span>
+        <div className="icon-text">
+          <h4>Soporte Experto</h4>
+          <span>Te asesoramos en tu compra</span>
+        </div>
       </div>
     </section>
   );
@@ -56,7 +74,7 @@ function FeaturedCategories() {
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        // CORRECCIÓN: Usamos API_URL en lugar de localhost
+        // Usamos API_URL en lugar de localhost
         const response = await fetch(`${API_URL}/productos`); 
         
         if (!response.ok) {
