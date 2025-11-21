@@ -12,6 +12,8 @@
   padding: 0 2rem; /* Relleno a los lados */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   width: 100%;
+  position: relative; /* Necesario para el z-index del menú móvil */
+  z-index: 1000;
 }
 
 .header-content {
@@ -24,29 +26,24 @@
 }
 
 /* --- Logo --- */
-/* Nuevo contenedor para agrupar imagen y texto */
 .logo-container {
   display: flex;
-  align-items: center; /* Centra verticalmente la imagen y el texto */
-  gap: 0.75rem; /* Espacio entre la imagen y el texto */
-  text-decoration: none; /* Quita el subrayado del enlace principal */
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
 }
 
-/* Estilo para la imagen del logo */
 .logo-image {
   width: 60px;
   height: 60px;
 }
 
-/* Estilo para el texto del logo (antes era '.logo a') */
 .logo-text {
   font-family: "Arial", sans-serif;
   font-size: 2rem;
   font-weight: bold;
   color: var(--color-texto);
   text-decoration: none;
-
-  /* El efecto de gradiente que te gusta */
   background: linear-gradient(
     45deg,
     var(--color-primario),
@@ -78,14 +75,22 @@
   color: var(--color-primario);
 }
 
+/* --- OCULTAR SECCIÓN MÓVIL POR DEFECTO (NUEVO) --- */
+.mobile-auth-links {
+  display: none; /* No se ve en escritorio */
+}
+
+/* Clases auxiliares */
+.desktop-only {
+  display: inline-block;
+}
+
 /* --- Búsqueda y Acciones --- */
 .header-actions {
   display: flex;
   align-items: center;
   gap: 1.5rem;
 }
-
-/* --- ESTILOS .search-bar ELIMINADOS --- */
 
 .user-icons {
   display: flex;
@@ -103,34 +108,31 @@
   color: var(--color-primario);
 }
 
-/* 1. Contenedor del menú (el padre) */
+/* Menú de Usuario (Dropdown) */
 .user-menu {
-  position: relative; /* Clave para posicionar el menú desplegable */
-  display: inline-block; /* Para que se alinee con el carrito */
+  position: relative; 
+  display: inline-block; 
 }
 
-/* 2. El ícono de usuario (le añadimos un cursor) */
 .user-icon-trigger {
   cursor: pointer;
 }
 
-/* 3. El menú desplegable (oculto por defecto) */
 .user-dropdown {
-  display: none; /* Oculto hasta que se haga hover */
+  display: none; 
   position: absolute;
-  right: 0; /* Alineado a la derecha */
-  top: 100%; /* Justo debajo del ícono */
-  background-color: #1e2a2e; /* Un fondo oscuro, como la barra de búsqueda */
-  min-width: 160px; /* Ancho mínimo */
+  right: 0; 
+  top: 100%; 
+  background-color: #1e2a2e; 
+  min-width: 160px; 
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
   border-radius: 8px;
-  padding: 8px 0; /* Espacio arriba y abajo */
+  padding: 8px 0; 
   z-index: 10;
 }
 
-/* 4. Los enlaces dentro del menú */
 .user-dropdown a {
-  color: var(--color-texto-sec); /* Texto gris claro */
+  color: var(--color-texto-sec); 
   padding: 10px 16px;
   text-decoration: none;
   display: block;
@@ -139,51 +141,20 @@
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* 5. El efecto hover en los enlaces del menú */
 .user-dropdown a:hover {
-  background-color: var(--color-primario); /* Fondo verde */
-  color: var(--color-fondo); /* Texto oscuro */
+  background-color: var(--color-primario); 
+  color: var(--color-fondo); 
 }
 
-/* 6. ¡LA MAGIA! Mostrar el menú al hacer hover en el contenedor */
 .user-dropdown.open {
   display: block;
 }
-
-/* --- Estilos para el Menú Hamburguesa --- */
-
-/* El botón de la hamburguesa (oculto en escritorio) */
-.hamburger-icon {
-  display: none; /* Oculto por defecto */
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 10px;
-  z-index: 1001; /* Asegura que esté sobre otros elementos */
-}
-
-/* Las 3 líneas del ícono */
-.hamburger-icon span {
-  display: block;
-  width: 25px;
-  height: 3px;
-  background-color: var(--color-texto);
-  margin: 5px 0;
-  border-radius: 3px;
-  transition: all 0.3s ease-in-out;
-}
-
-/* El 'placeholder' para la búsqueda dentro del nav-links (oculto en escritorio) */
-/* --- ESTILO .nav-search-bar ELIMINADO --- */
-
-/* --- Media Query: MODO CELULAR --- */
-/* (Puedes ajustar 900px al tamaño que prefieras) */
 
 .logout-button {
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 500;
-  color: #f8d7da; /* Tono rojo claro */
+  color: #f8d7da; 
   background: none;
   border: none;
   padding: 10px 16px;
@@ -194,11 +165,10 @@
 }
 
 .logout-button:hover {
-  background-color: #721c24; /* Rojo oscuro */
+  background-color: #721c24; 
   color: #fff;
 }
 
-/* Estilo para el círculo de iniciales (cuando está logueado) */
 .user-initials {
   width: 30px;
   height: 30px;
@@ -213,55 +183,57 @@
 }
 
 .nav-links .admin-panel-link a {
-  color: var(--color-secundario); /* Naranja */
-  font-weight: 700; /* Negrita */
+  color: var(--color-secundario); 
+  font-weight: 700; 
   border: 1px solid var(--color-secundario);
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
-  line-height: 1.2; /* Ajuste de altura */
+  line-height: 1.2; 
 }
 
 .nav-links .admin-panel-link a:hover {
   background-color: var(--color-secundario);
-  color: #fff; /* Texto blanco al pasar el mouse */
+  color: #fff; 
 }
 
+/* --- Estilos para el Menú Hamburguesa --- */
+.hamburger-icon {
+  display: none; /* Oculto por defecto */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  z-index: 1001; 
+}
+
+.hamburger-icon span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background-color: var(--color-texto);
+  margin: 5px 0;
+  border-radius: 3px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* --- Media Query: MODO CELULAR --- */
 @media (max-width: 900px) {
-  .hamburger-icon {
-    display: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 10px;
-    z-index: 1001;
-  }
-
-  .hamburger-icon span {
-    display: block;
-    width: 25px;
-    height: 3px;
-    background-color: var(--color-texto);
-    margin: 5px 0;
-    border-radius: 3px;
-    transition: all 0.3s ease-in-out;
-  }
-
-  /* --- ESTILO .nav-search-bar ELIMINADO --- */
-
-  /* 1. Ocultamos la búsqueda de escritorio y mostramos la hamburguesa */
-  /* --- ESTILO .header-actions .search-bar ELIMINADO --- */
-  
   .hamburger-icon {
     display: block;
     margin-left: 1rem;
   }
+
   .header-actions {
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
-  /* 2. Lógica de animación CSS (reemplaza 'display: none') */
+  /* 1. Ocultar el ícono de usuario de la barra superior en móvil (NUEVO) */
+  .header-actions .user-menu.desktop-only {
+    display: none;
+  }
+
+  /* 2. Lógica de animación del menú móvil */
   .nav-links {
-    /* Posicionamiento */
     position: absolute;
     top: 80px; /* Debajo del header */
     left: 0;
@@ -270,32 +242,24 @@
     z-index: 1000;
     border-top: 1px solid #1e2a2e;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-
-    /* Para ocultar el contenido que se desborda */
     overflow: hidden;
-
-    /* Estado INICIAL (cerrado): altura 0 y transparente */
     max-height: 0;
     opacity: 0;
-
-    /* Transición suave */
     transition: max-height 0.4s ease-out, opacity 0.3s ease-in;
   }
 
-  /* 3. Estado FINAL (abierto): se activa con la clase .open */
   .nav-links.open {
-    max-height: 500px; /* Alto suficiente para tu menú */
+    max-height: 600px; /* Aumentado para que quepan los nuevos links */
     opacity: 1;
     transition: max-height 0.4s ease-in, opacity 0.3s ease-out;
   }
 
-  /* 4. Estilos del contenido del menú (igual que antes) */
   .nav-links ul {
     flex-direction: column;
     width: 100%;
     align-items: center;
     gap: 0;
-    padding: 1rem 0; /* Espacio para que no se vea apretado */
+    padding: 1rem 0;
   }
 
   .nav-links li {
@@ -313,23 +277,53 @@
     background-color: #1e2a2e;
   }
 
-  /* 5. --- ESTILOS .nav-links .nav-search-bar ELIMINADOS --- */
   .nav-links .admin-panel-link {
-    /* Centramos el botón en el menú móvil */
     display: flex;
     justify-content: center;
     padding: 0.5rem 0;
   }
   
   .nav-links .admin-panel-link a {
-    /* Hacemos que el botón naranja mantenga su estilo */
     display: inline-block;
     width: auto;
-    padding: 0.5rem 1.5rem; /* Un poco más de padding en móvil */
+    padding: 0.5rem 1.5rem; 
   }
 
-  .nav-links .admin-panel-link a:hover {
-    background-color: var(--color-secundario);
-    color: #fff;
+  /* --- 3. ESTILOS NUEVOS PARA EL AUTH MÓVIL --- */
+  .mobile-auth-links {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+  }
+
+  .divider-mobile {
+    width: 80%;
+    height: 1px;
+    background-color: #333;
+    margin: 1rem 0;
+  }
+
+  .mobile-user-info {
+    color: var(--color-primario);
+    font-weight: bold;
+    padding: 0.5rem 0;
+  }
+
+  .mobile-logout-btn {
+    background: none;
+    border: none;
+    color: #f8d7da;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 1rem 0;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+  }
+  
+  .mobile-login-btn {
+    color: var(--color-primario) !important; 
+    font-weight: 700 !important;
   }
 }
