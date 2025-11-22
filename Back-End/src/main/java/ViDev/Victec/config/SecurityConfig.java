@@ -60,15 +60,23 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // --- AQUÍ ESTÁ EL CAMBIO ---
-        // Autorizamos a tu PC local Y a tu nueva web en Netlify
+        // Orígenes permitidos
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173",           // Pruebas en tu PC
-            "https://victec.netlify.app"       // <--- TU NUEVA TIENDA EN VIVO
+            "https://victec.netlify.app"       // Tu web en Netlify
         ));
         
+        // Métodos permitidos
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        
+        // --- AQUÍ ESTÁ EL CAMBIO IMPORTANTE ---
+        // Añadimos "ngrok-skip-browser-warning" a la lista de headers permitidos
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "ngrok-skip-browser-warning" // <--- ¡NUEVO!
+        ));
+        
         configuration.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

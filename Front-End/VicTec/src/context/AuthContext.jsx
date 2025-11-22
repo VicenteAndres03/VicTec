@@ -128,17 +128,17 @@ export function AuthProvider({ children }) {
     console.log('=== getAuthHeader llamado ===');
     console.log('Token disponible:', currentToken ? 'Sí' : 'No');
     
-    if (!currentToken) {
-      console.warn('ADVERTENCIA: No hay token disponible');
-      return {
-        'Content-Type': 'application/json'
-      };
+    // --- MODIFICACIÓN: Agregamos el header para ngrok aquí ---
+    const headers = {
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true' // <--- ¡ESTO ES LO IMPORTANTE!
+    };
+
+    if (currentToken) {
+      headers['Authorization'] = `Bearer ${currentToken}`;
     }
     
-    return {
-      'Authorization': `Bearer ${currentToken}`,
-      'Content-Type': 'application/json'
-    };
+    return headers;
   }, []);
 
   const isTokenValid = useCallback(() => {

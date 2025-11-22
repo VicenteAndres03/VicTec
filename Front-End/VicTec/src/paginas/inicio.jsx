@@ -75,7 +75,13 @@ function FeaturedCategories() {
     const fetchProductos = async () => {
       try {
         // Usamos API_URL en lugar de localhost
-        const response = await fetch(`${API_URL}/productos`); 
+        // --- MODIFICACIÓN: Agregamos el header para ngrok ---
+        const response = await fetch(`${API_URL}/productos`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            'Content-Type': 'application/json'
+          }
+        }); 
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

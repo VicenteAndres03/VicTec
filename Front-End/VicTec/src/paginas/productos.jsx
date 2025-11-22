@@ -52,7 +52,13 @@ function ProductosPage() {
           url = `${API_URL}/productos?categoria=${encodeURIComponent(categoria)}`;
         }
         
-        const response = await fetch(url);
+        // --- MODIFICACIÓN: Agregamos el header para ngrok ---
+        const response = await fetch(url, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            'Content-Type': 'application/json'
+          }
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -79,6 +85,7 @@ function ProductosPage() {
     }
     try {
       // Usamos API_URL aquí también para conectar con la nube
+      // getAuthHeader ya incluye el header de ngrok gracias al cambio en AuthContext
       const response = await fetch(`${API_URL}/carrito/add`, { 
         method: 'POST',
         headers: getAuthHeader(),
