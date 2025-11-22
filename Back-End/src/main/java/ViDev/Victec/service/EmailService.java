@@ -1,7 +1,6 @@
 package ViDev.Victec.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -13,36 +12,30 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    // Inyectamos el correo configurado para usarlo como remitente
-    @Value("${spring.mail.username}")
-    private String remitente;
-
-    @Async 
+    @Async
     public void enviarCorreoSoporte(String nombre, String emailCliente, String mensaje) {
         try {
             SimpleMailMessage email = new SimpleMailMessage();
             
-            // Es importante establecer el 'From' igual al usuario autenticado
-            email.setFrom(remitente); 
+            // Configuración idéntica a SenaleStudio: Definir explícitamente el From
+            email.setFrom("vixdeev@gmail.com");
             
-            email.setTo("vixdeev@gmail.com"); 
-            email.setSubject("Nuevo Mensaje de Soporte de: " + nombre);
+            email.setTo("vixdeev@gmail.com");
+            email.setSubject("Soporte VicTec: " + nombre);
             
-            String textoMensaje = String.format(
-                "Has recibido un nuevo mensaje de soporte:\n\n" +
-                "De: %s\n" +
-                "Email: %s\n\n" +
-                "Mensaje:\n%s",
-                nombre, emailCliente, mensaje
-            );
+            // Construcción simple del mensaje
+            String texto = "Has recibido un nuevo mensaje de soporte:\n\n" +
+                           "De: " + nombre + "\n" +
+                           "Email del cliente: " + emailCliente + "\n\n" +
+                           "Mensaje:\n" + mensaje;
             
-            email.setText(textoMensaje);
+            email.setText(texto);
+            
             mailSender.send(email);
+            System.out.println("Email enviado con éxito (Configuración SenaleStudio)");
             
-            System.out.println("✅ Email de soporte enviado correctamente a vixdeev@gmail.com");
-
         } catch (Exception e) {
-            System.err.println("❌ Error CRÍTICO enviando email: " + e.getMessage());
+            System.err.println("Error al enviar el correo: " + e.getMessage());
             e.printStackTrace();
         }
     }
