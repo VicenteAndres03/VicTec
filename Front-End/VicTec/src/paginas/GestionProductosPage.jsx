@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config'; // <--- 1. IMPORTAMOS LA URL DEL BACKEND
+import API_URL from '../config'; 
 import './GestionProductosPage.css';
 
 // --- Estado inicial para el formulario ---
@@ -41,8 +41,15 @@ function GestionProductosPage() {
     try {
       setLoading(true);
       setError(null);
-      // 2. CORRECCIÓN: Usamos API_URL en lugar de ruta relativa
-      const response = await fetch(`${API_URL}/productos`); 
+      
+      // --- CAMBIO IMPORTANTE AQUÍ ---
+      // Agregamos los headers para que ngrok nos deje pasar
+      const response = await fetch(`${API_URL}/productos`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          'Content-Type': 'application/json'
+        }
+      }); 
       
       if (!response.ok) throw new Error('No se pudieron cargar los productos');
       const data = await response.json();
@@ -73,7 +80,6 @@ function GestionProductosPage() {
 
     const esNuevo = modoForm === 'nuevo';
     
-    // 3. CORRECCIÓN: Usamos API_URL para guardar/actualizar
     const url = esNuevo 
       ? `${API_URL}/productos` 
       : `${API_URL}/productos/${productoActual.id}`;
@@ -81,6 +87,8 @@ function GestionProductosPage() {
     const method = esNuevo ? 'POST' : 'PUT';
 
     try {
+      // Aquí usamos getAuthHeader() que YA actualizaste en el paso anterior
+      // así que esto ya incluye el header de ngrok automáticamente.
       const response = await fetch(url, {
         method: method,
         headers: getAuthHeader(), 
@@ -121,7 +129,6 @@ function GestionProductosPage() {
   const handleEliminar = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
       try {
-        // 4. CORRECCIÓN: Usamos API_URL para eliminar
         const response = await fetch(`${API_URL}/productos/${id}`, {
           method: 'DELETE',
           headers: getAuthHeader(), 
