@@ -65,7 +65,18 @@ const PrivateRoute = ({ children }) => {
 const AdminRoute = ({ children }) => {
   const { user, loadingAuth } = useAuth();
   if (loadingAuth) return null;
-  const isAdmin = user?.roles?.some((role) => role.nombre === "ROLE_ADMIN");
+  // Aceptar roles en dos formatos posibles:
+  // - Array de strings: ['ROLE_ADMIN', ...]
+  // - Array de objetos: [{ nombre: 'ROLE_ADMIN' }, ...]
+  const isAdmin =
+    !!user?.roles &&
+    Array.isArray(user.roles) &&
+    user.roles.some((role) => {
+      if (!role) return false;
+      if (typeof role === "string") return role === "ROLE_ADMIN";
+      return role.nombre === "ROLE_ADMIN";
+    });
+
   return isAdmin ? children : <Navigate to="/admin/login" />;
 };
 
@@ -115,6 +126,15 @@ function App() {
                   <Route
                     path="/privacidad"
                     element={<PoliticaPrivacidadPage />}
+                  />
+                  {/* Rutas legacy: redirecciones desde URLs antiguas */}
+                  <Route
+                    path="/politica-privacidad"
+                    element={<Navigate to="/privacidad" replace />}
+                  />
+                  <Route
+                    path="/terminos-servicio"
+                    element={<Navigate to="/terminos" replace />}
                   />
 
                   <Route

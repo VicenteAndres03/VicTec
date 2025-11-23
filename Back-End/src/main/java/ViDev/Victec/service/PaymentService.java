@@ -26,6 +26,9 @@ public class PaymentService {
     @Value("${mercadopago.access.token}")
     private String accessToken;
 
+    @Value("${frontend.url:http://localhost:5173}")
+    private String frontendUrl;
+
     @PostConstruct
     public void init() {
         MercadoPagoConfig.setAccessToken(accessToken);
@@ -94,11 +97,12 @@ public class PaymentService {
         );
 
         // --- URLs CONFIGURADAS PARA LOCALHOST ---
+        // Usar URL del frontend configurada (permite usar ngrok/https en producción)
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success("http://localhost:5173/compra-exitosa") 
-                .failure("http://localhost:5173/carrito")
-                .pending("http://localhost:5173/carrito") 
-                .build();
+            .success(frontendUrl + "/compra-exitosa")
+            .failure(frontendUrl + "/carrito")
+            .pending(frontendUrl + "/carrito")
+            .build();
 
         PreferenceRequest request = PreferenceRequest.builder()
                 .items(items)

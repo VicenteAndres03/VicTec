@@ -42,8 +42,8 @@ function Footer() {
 
         {/* --- Enlaces de Política (opcional) --- */}
         <div className="footer-links">
-          <Link to="/politica-privacidad">Política de Privacidad</Link>
-          <Link to="/terminos-servicio">Términos de Servicio</Link>
+          <Link to="/privacidad">Política de Privacidad</Link>
+          <Link to="/terminos">Términos de Servicio</Link>
         </div>
       </div>
     </footer>
