@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useNavigate,
+  useLocation,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
@@ -17,7 +19,7 @@ import CarritoPage from "./paginas/CarritoPage";
 import CheckoutPage from "./paginas/CheckoutPage";
 import MiCuentaPage from "./paginas/MiCuentaPage";
 import MisPedidosPage from "./paginas/MisPedidosPage";
-import CompraExitosaPage from "./paginas/CompraExitosaPage"; // <--- Asegúrate de tener esto importado
+import CompraExitosaPage from "./paginas/CompraExitosaPage";
 import SoportePage from "./paginas/soporte";
 import BlogPage from "./paginas/blog";
 import ReportesPage from "./paginas/ReportesPage";
@@ -26,25 +28,43 @@ import AdminLoginPage from "./paginas/AdminLoginPage";
 import TerminosServicioPage from "./paginas/TerminosServicioPage";
 import PoliticaPrivacidadPage from "./paginas/PoliticaPrivacidadPage";
 
-// Layouts y Componentes
+// Componentes
 import Header from "./componentes/header";
 import Footer from "./componentes/Footer";
 import AdminLayout from "./layouts/AdminLayout";
 import PublicRoute from "./componentes/PublicRoute";
 import "./App.css";
 
-// Componente para Rutas Protegidas (Usuarios Logueados)
+// --- Manejador de Redirección de Pagos ---
+const PaymentRedirectHandler = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const isReturningFromPayment = sessionStorage.getItem("leavingForPayment");
+    if (isReturningFromPayment === "true") {
+      if (!location.pathname.includes("/compra-exitosa")) {
+        sessionStorage.removeItem("leavingForPayment");
+        navigate("/carrito", { replace: true });
+      } else {
+        sessionStorage.removeItem("leavingForPayment");
+      }
+    }
+  }, [location, navigate]);
+
+  return null;
+};
+
+// --- Rutas Protegidas ---
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loadingAuth } = useAuth();
-  if (loadingAuth) return <div>Cargando...</div>;
+  if (loadingAuth) return null; // Esperar a que cargue
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-// Componente para Rutas de Admin
 const AdminRoute = ({ children }) => {
   const { user, loadingAuth } = useAuth();
-  if (loadingAuth) return <div>Cargando...</div>;
-  // Verificamos si el usuario tiene el rol ROLE_ADMIN
+  if (loadingAuth) return null;
   const isAdmin = user?.roles?.some((role) => role.nombre === "ROLE_ADMIN");
   return isAdmin ? children : <Navigate to="/admin/login" />;
 };
@@ -53,10 +73,10 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <PaymentRedirectHandler />
         <Routes>
-          {/* --- RUTAS DE ADMINISTRADOR (Sin Header/Footer normal) --- */}
+          {/* Admin */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
-
           <Route
             path="/admin/*"
             element={
@@ -69,7 +89,6 @@ function App() {
                       element={<GestionProductosPage />}
                     />
                     <Route path="reportes" element={<ReportesPage />} />
-                    {/* Redirección por defecto en admin */}
                     <Route path="*" element={<Navigate to="dashboard" />} />
                   </Routes>
                 </AdminLayout>
@@ -77,7 +96,7 @@ function App() {
             }
           />
 
-          {/* --- RUTAS PÚBLICAS Y DE CLIENTE (Con Header y Footer) --- */}
+          {/* Cliente */}
           <Route
             path="/*"
             element={
@@ -92,13 +111,12 @@ function App() {
                   />
                   <Route path="/soporte" element={<SoportePage />} />
                   <Route path="/blog" element={<BlogPage />} />
-                  {/* Rutas Legales */}
                   <Route path="/terminos" element={<TerminosServicioPage />} />
                   <Route
                     path="/privacidad"
                     element={<PoliticaPrivacidadPage />}
                   />
-                  {/* Rutas de Autenticación (Solo para no logueados) */}
+
                   <Route
                     path="/login"
                     element={
@@ -115,7 +133,7 @@ function App() {
                       </PublicRoute>
                     }
                   />
-                  {/* Rutas Protegidas de Cliente */}
+
                   <Route
                     path="/carrito"
                     element={
@@ -139,8 +157,7 @@ function App() {
                         <CompraExitosaPage />
                       </PrivateRoute>
                     }
-                  />{" "}
-                  {/* <--- ESTA ES LA IMPORTANTE */}
+                  />
                   <Route
                     path="/mi-cuenta"
                     element={
@@ -157,12 +174,12 @@ function App() {
                       </PrivateRoute>
                     }
                   />
-                  {/* Ruta 404 para cliente */}
+
                   <Route
                     path="*"
                     element={
-                      <div style={{ padding: "100px", textAlign: "center" }}>
-                        <h2>Página no encontrada (404)</h2>
+                      <div style={{ padding: "50px", textAlign: "center" }}>
+                        <h2>404 - Página no encontrada</h2>
                       </div>
                     }
                   />
